@@ -1,13 +1,14 @@
-def create_new_user(massege):
+def create_new_user(id,name,surname):
     import os
-    y=os.getcwd()+'/info_candidats_test'
+    y=os.getcwd()+'/info_candidats'
     print(y)
     os.mkdir(y)
-def get_info_user(message):
+    b=os.getcwd()+'/info_cadidats/'+
+def get_info_user(id):
     print('пустышка')
-def write_characteristic(message):
+def write_characteristic(id,message):
     print('пустышка')
-def write_message(message):
+def write_message(id,message):
     print('пустышка')
-def write_answer(message):
+def write_answer(id,message):
     print('пустышка')
