@@ -17,7 +17,7 @@ class Session:
 
 active_sessions = {}
 
-def handle_incoming_message(sender_id, text, is_keyboard):
+def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
     session = active_sessions.get(sender_id)
 
     # Если сессия не найдена - создаем новую
@@ -29,6 +29,8 @@ def handle_incoming_message(sender_id, text, is_keyboard):
         active_sessions[sender_id] = session
 
     # Делаем выбор в зависимости от состояния сессии
+
+    send_callback(sender_id, text, [])
 
     if session.state == Session.STATE_JO:
         # TODO Оцениваем ответ пользователя
