@@ -31,6 +31,11 @@ if dct is not None:
             answ.next_question = questions[answ.next_question] if answ.next_question in questions else None
 
 def handle_answer(user, question, answer_text):
+    """
+    Попробовать записать ответ в анкету. 
+    Вернёт True, если получилось записать в анкету.
+    Если это неанкетный вопрос - возвращается False.
+    """
     if question.save_to == "name":
         user.name = answer_text
     elif question.save_to == "age":
@@ -45,3 +50,12 @@ def handle_answer(user, question, answer_text):
         user.desired_job = answer_text
     if question.save_to is not None:
         storage.update_user(user)
+        return True
+    else:
+        return False
+
+def get_best_answer(text, question):
+    """
+    Выбрать answer, который лучше всего подходит под ответ пользователя
+    """
+    return question.answers[0]
