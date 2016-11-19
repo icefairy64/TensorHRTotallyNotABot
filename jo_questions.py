@@ -41,5 +41,7 @@ def handle_answer(user, question, answer_text):
         user.work_exp = answer_text
     elif question.save_to == "skills":
         user.skills = answer_text
+    elif question.save_to == "desired_job":
+        user.desired_job = answer_text
     if question.save_to is not None:
         storage.update_user(user)

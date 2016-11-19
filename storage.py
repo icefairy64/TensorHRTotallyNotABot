@@ -49,7 +49,7 @@ class Session:
     STATE_JO = "JO"
     STATE_QUIZ = "QUIZ"
 
-    def __init__(self, user, state=None, jo_question=None):
+    def __init__(self, user, state=None, jo_question=None, quiz_question=None):
         self.user = user
 
         if state is None:
@@ -61,6 +61,11 @@ class Session:
             self.jo_question = jo_questions.questions[u"Начало"]
         else:
             self.jo_question = jo_question
+
+        if quiz_question is None:
+            self.quiz_question = None
+        else:
+            self.quiz_question = quiz_question
 
 def nf(data):
     if isinstance(data, str) or isinstance(data, unicode):
@@ -152,8 +157,8 @@ def store_users_answer(user, question, answer_text, grade):
     conn.commit()
 
 def fetch_session(session_id):
-    for row in conn.execute(u"select state, jo_question from sessions where session_id={}".format(session_id)):
-        return Session(fetch_user_by_telegramid(session_id), row[0], jo_questions.questions[row[1]])
+    for row in conn.execute(u"select state, jo_question, quiz_question from sessions where session_id={}".format(session_id)):
+        return Session(fetch_user_by_telegramid(session_id), row[0], jo_questions.questions[row[1]], g_questions[row[2]])
     return None
 
 def store_session(session, session_id):
@@ -163,7 +168,7 @@ def store_session(session, session_id):
         exists = True
         sid = row[0]
     if exists:
-        conn.execute(u"update sessions set state={}, jo_question={} where session_id={}".format(nf(session.state), nf(session.jo_question.name), sid))
+        conn.execute(u"update sessions set state={}, jo_question={}, quiz_question={} where session_id={}".format(nf(session.state), nf(session.jo_question.name), nf(session.quiz_question.qid), sid))
     else:
-        conn.execute(u"insert into sessions (session_id, state, jo_question) values ({}, {}, {})".format(nf(session_id), nf(session.state), nf(session.jo_question.name)))
+        conn.execute(u"insert into sessions (session_id, state, jo_question, quiz_question) values ({}, {}, {}, {})".format(nf(session_id), nf(session.state), nf(session.jo_question.name), nf(session.quiz_question.qid)))
     conn.commit()
