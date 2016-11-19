@@ -23,6 +23,6 @@
     "ЗапросИмени": {
         "text": "Как вас зовут?",
         "answers": [],
-        "send_to": "name"
+        "save_to": "name"
     }
 }
