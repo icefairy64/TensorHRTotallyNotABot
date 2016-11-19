@@ -48,7 +48,7 @@ class TestMultipleChoiceAnswer(unittest.TestCase):
 
     def test_without_infelicity(self):
         self.assertEqual(self.ae.estimate( self.answer1,
-                                     {'answers': self.ref_answers}), 1)
+                                     {'answers': self.ref_answers}, 0.6), 1)
 
         self.assertEqual(self.ae.estimate(self.answer2,
                                      {'answers': self.ref_answers}, 0.6), 0)
