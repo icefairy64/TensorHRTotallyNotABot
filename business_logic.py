@@ -69,7 +69,7 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
         n_jo_quest = answer.next_question
 
         if n_jo_quest is not None:
-            send_callback(sender_id, session.jo_question.text, [])
+            send_callback(sender_id, n_jo_quest.text, [])
             session.jo_question = n_jo_quest
         else:
              # Переходим на тестирование
