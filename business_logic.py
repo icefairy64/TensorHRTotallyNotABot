@@ -13,10 +13,12 @@ active_sessions = {}
 is_active = True
 
 def pause():
+    global is_active
     is_active = False
     return True
 
 def restore():
+    global is_active
     is_active = True
 
 def eval_answer_rate(answers):
