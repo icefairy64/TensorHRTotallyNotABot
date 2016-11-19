@@ -23,7 +23,7 @@ class Question:
         self.answer = answer
 
 class User:
-    def __init__(self, uid, telegram_id, name, age, learn_exp, work_exp, skills):
+    def __init__(self, uid, telegram_id, name, age, learn_exp, work_exp, skills, desired_job):
         self.uid = uid
         self.telegram_id = telegram_id
         self.name = name
@@ -31,6 +31,7 @@ class User:
         self.learn_exp = learn_exp
         self.work_exp = work_exp
         self.skills = skills
+        self.desired_job = desired_job
 
     def get_answers(self):
         return fetch_answers_for_user(self)
@@ -70,7 +71,7 @@ def nf(data):
         return data
 
 def user_fromdb(row):
-    return User(row[0], row[1], row[2], row[3], row[4], row[5], row[6])
+    return User(row[0], row[1], row[2], row[3], row[4], row[5], row[6], row[7])
 
 def fetch_categories():
     res = {}
@@ -123,7 +124,7 @@ def fetch_next_question_for_user(user, level):
     return random.choice(qs)
     
 
-def store_user(telegram_id, name=None, age=None, learn_exp=None, work_exp=None, skills=None):
+def store_user(telegram_id, name=None, age=None, learn_exp=None, work_exp=None, skills=None, desired_job=None):
     exists = False
     uid = -1
     for row in conn.execute("select id from users where telegram_id={}".format(telegram_id)):
@@ -131,14 +132,14 @@ def store_user(telegram_id, name=None, age=None, learn_exp=None, work_exp=None, 
         exists = True
         break
     if exists:
-        query = u"update users set telegram_id={}, name={}, age={}, learn_exp={}, work_exp={}, skills={} where id={}".format(nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills), nf(uid))
+        query = u"update users set telegram_id={}, name={}, age={}, learn_exp={}, work_exp={}, skills={}, desired_job={} where id={}".format(nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills), nf(desired_job), nf(uid))
     else:
-        query = u"insert into users (telegram_id, name, age, learn_exp, work_exp, skills) values ({}, {}, {}, {}, {}, {})".format(nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills))
+        query = u"insert into users (telegram_id, name, age, learn_exp, work_exp, skills, desired_job) values ({}, {}, {}, {}, {}, {}, {})".format(nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills), nf(desired_job))
     conn.execute(query)
     conn.commit()
 
 def update_user(user):
-    store_user(user.telegram_id, user.name, user.age, user.learn_exp, user.work_exp, user.skills)
+    store_user(user.telegram_id, user.name, user.age, user.learn_exp, user.work_exp, user.skills, user.desired_job)
 
 def fetch_answers_for_user(user):
     res = []
