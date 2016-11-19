@@ -33,7 +33,7 @@ def eval_answer_rate(answers):
 
 def send_quiz_question(target, question, callback):
     if question.answer["type"] == 0:
-        lst = question.answer["right_answer"]
+        lst = question.answer["all_answers"]
     else:
         lst = []
     callback(target, question.text, lst)
@@ -88,6 +88,10 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
 
     elif session.state == storage.Session.STATE_QUIZ:
         quest = session.quiz_question
+
+        if quest.answer["type"] == 0 and not is_keyboard:
+            send_callback(sender_id, u"Пожалуйста, выберите ответ из перечисленных выше.", [])
+            return
 
         mark = AnswerEvaluation.factory(quest.answer["type"]).estimate(
             text if quest.answer["type"] == AnswerEvaluation.SINGLE_CHOICE else list(

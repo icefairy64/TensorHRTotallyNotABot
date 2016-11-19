@@ -128,7 +128,7 @@ def fetch_next_question_onlevel(question_id):
     return samelvl[0]
 
 def fetch_user_by_telegramid(telegram_id):
-    for row in sqlite3.connect("storage.db").execute(u"select * from users where telegram_id={}".format(telegram_id)):
+    for row in sqlite3.connect("storage.db").execute(u"select * from users where telegram_id={}".format(nf(telegram_id))):
         return user_fromdb(row)
     raise Exception("Could not find user with Telegram ID '{}'".format(telegram_id))
 
@@ -145,17 +145,20 @@ def fetch_next_question_for_user(user, cat, level):
 def store_user(telegram_id, name=None, age=None, learn_exp=None, work_exp=None, skills=None, desired_job=None):
     exists = False
     uid = -1
-    for row in sqlite3.connect("storage.db").execute("select id from users where telegram_id=?", [nf(telegram_id)]):
+    for row in sqlite3.connect("storage.db").execute("select id from users where telegram_id=?", [telegram_id]):
         uid = row[0]
         exists = True
         break
     if exists:
         query = u"update users set telegram_id=?, name=?, age=?, learn_exp=?, work_exp=?, skills=?, desired_job=? where id=?"
-        sqlite3.connect("storage.db").execute(query, [nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills), nf(desired_job), nf(uid)])
+        conn = sqlite3.connect("storage.db")
+        conn.execute(query, [telegram_id, name, age, learn_exp, work_exp, skills, desired_job, uid])
+        conn.commit()
     else:
         query = u"insert into users (telegram_id, name, age, learn_exp, work_exp, skills, desired_job) values (?, ?, ?, ?, ?, ?, ?)"
-        sqlite3.connect("storage.db").execute(query, [nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills), nf(desired_job)])
-    sqlite3.connect("storage.db").commit()
+        conn = sqlite3.connect("storage.db")
+        conn.execute(query, [telegram_id, name, age, learn_exp, work_exp, skills, desired_job])
+        conn.commit()
 
 def update_user(user):
     store_user(user.telegram_id, user.name, user.age, user.learn_exp, user.work_exp, user.skills, user.desired_job)
@@ -173,8 +176,9 @@ def store_users_answer(user, question, answer_text, grade):
         break
     if exists:
         return
-    sqlite3.connect("storage.db").execute(u"insert into users_answers (user_id, question_id, raw_answer, answer_grade, answer_time) values ({}, {}, {}, {}, {})".format(user.uid, question.qid, nf(answer_text), grade, int(time.time())))
-    sqlite3.connect("storage.db").commit()
+    conn = sqlite3.connect("storage.db")
+    conn.execute(u"insert into users_answers (user_id, question_id, raw_answer, answer_grade, answer_time) values ({}, {}, {}, {}, {})".format(user.uid, question.qid, nf(answer_text), grade, int(time.time())))
+    conn.commit()
 
 def fetch_session(session_id):
     for row in sqlite3.connect("storage.db").execute(u"select state, jo_question, quiz_question from sessions where session_id={}".format(session_id)):
@@ -188,10 +192,13 @@ def store_session(session, session_id):
         exists = True
         sid = row[0]
     if exists:
-        sqlite3.connect("storage.db").execute(u"update sessions set state={}, jo_question={}, quiz_question={} where session_id={}".format(nf(session.state), nf(session.jo_question.name), nf(session.quiz_question.qid), sid))
+        conn = sqlite3.connect("storage.db")
+        conn.execute(u"update sessions set state={}, jo_question={}, quiz_question={} where session_id={}".format(nf(session.state), nf(session.jo_question.name), nf(session.quiz_question.qid), sid))
+        conn.commit()
     else:
-        sqlite3.connect("storage.db").execute(u"insert into sessions (session_id, state, jo_question, quiz_question) values ({}, {}, {}, {})".format(nf(session_id), nf(session.state), nf(session.jo_question.name), nf(session.quiz_question.qid)))
-    sqlite3.connect("storage.db").commit()
+        conn = sqlite3.connect("storage.db")
+        conn.execute(u"insert into sessions (session_id, state, jo_question, quiz_question) values ({}, {}, {}, {})".format(nf(session_id), nf(session.state), nf(session.jo_question.name), nf(session.quiz_question.qid)))
+        conn.commit()
 
 def get_random_answer():
     return random.choice(random_answers)
