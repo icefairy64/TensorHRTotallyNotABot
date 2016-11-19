@@ -4,7 +4,7 @@
 import os
 import subprocess
 import subprocess as sp
-
+from zipfile import ZipFile
 
 def create_new_user(id,name,surname):
     y=os.getcwd() + '/info_candidats'
@@ -33,14 +33,19 @@ def get_info_user(id):
 
     subprocess.call(command_1, shell=True)
 
-    sp.check_call(folder + line + '_perepiska.pdf')
-
     command_2 ="athenapdf/athenapdf " + folder + id + '_characteristic.html ' + folder + line + '_charect.pdf'
     print(command_2)
 
     subprocess.call(command_2, shell=True)
 
-    sp.check_call(folder + line + '_charect.pdf')
+    filename = __file__
+
+    # Создание архива
+    z = ZipFile(folder +line+ '.zip', 'w')
+    # Добавление файла в архив
+    z.write(filename, line + '_info.pdf')
+    z.write(filename, line + '_charect.pdf')
+    z.close()
 
 def write_characteristic(id,message):
     file_charect = file(id + name + surname + '_characteristic' + '.html', 'a')
