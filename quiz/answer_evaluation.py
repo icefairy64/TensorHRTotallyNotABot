@@ -33,6 +33,7 @@ class AnswerEvaluation(object):
         raise NotImplementedError(
             'Необходимо реализовать метод estimate (оценить)')
 
+
 class AnswerEvaluationSingleChoice(AnswerEvaluation):
 
     def estimate(self, answer, reference, infelicity=0):
@@ -64,19 +65,19 @@ class AnswerEvaluationMultipleChoice(AnswerEvaluation):
         ref_inf = reference.get('infelicity', 0)
 
         if infelicity > 0:
-            for ra in reference['answers']:
+            for ra in reference['right_answers']:
                 for aa in answer:
                     dam_lev_dis = damerau_levenstein_distance(aa, ra)
                     p = dam_lev_dis / len(ra)
                     if p < infelicity:
                         result += 1
         else:
-            for ra in reference['answers']:
+            for ra in reference['right_answers']:
                 if ra in answer:
                     result += 1
 
         if ref_inf == 0:
-            if result == len(reference['answers']):
+            if result == len(reference['right_answers']):
                 return 1
             else:
                 return 0
@@ -84,11 +85,38 @@ class AnswerEvaluationMultipleChoice(AnswerEvaluation):
         if result < ref_inf:
             return 0
         else:
-            return round(result / len(reference['answers']), 2)
+            return round(result / len(reference['right_answers']), 2)
 
 
 class AnswerEvaluationFreeForm(AnswerEvaluation):
 
-    def estimate(self, answer, reference):
-        return 1
+    def estimate(self, answer, reference, infelicity=0):
+        if answer is None or reference is None:
+            return 0
+        result = 0
+
+        ref_inf = reference.get('infelicity', 0)
+
+        if infelicity > 0:
+            for ra in reference['keywords']:
+                for aa in answer:
+                    dam_lev_dis = damerau_levenstein_distance(aa, ra)
+                    p = dam_lev_dis / len(ra)
+                    if p < infelicity:
+                        result += 1
+        else:
+            for ra in reference['keywords']:
+                if ra in answer:
+                    result += 1
+
+        if ref_inf == 0:
+            if result == len(reference['keywords']):
+                return 1
+            else:
+                return 0
+
+        if result < ref_inf:
+            return 0
+        else:
+            return round(result / len(reference['keywords']), 2)
 
