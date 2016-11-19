@@ -4,6 +4,7 @@ import json
 import io
 import codecs
 import storage
+import parsing
 
 class JOAnswer:
     def __init__(self, dct):
@@ -55,7 +56,21 @@ def handle_answer(user, question, answer_text):
         return False
 
 def get_best_answer(text, question):
-    """
+
+	"""
     Выбрать answer, который лучше всего подходит под ответ пользователя
     """
-    return question.answers[0]
+
+	if len(question.answers) == 1:
+		return question.answers[0]
+
+	def consider_kw(user_kw, answer_kw):
+		print user_kw
+		print answer_kw
+		kws = [a for a in user_kw if a in answer_kw]
+		return len(kws) / float(len(user_kw))
+
+	user_answer = parsing.split_string(text)
+	coefs = [consider_kw(user_answer, a.keywords) for a in question.answers]
+
+	return question.answers[coefs.index(max(coefs))]
