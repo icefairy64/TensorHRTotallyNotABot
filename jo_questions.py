@@ -65,8 +65,6 @@ def get_best_answer(text, question):
 		return question.answers[0]
 
 	def consider_kw(user_kw, answer_kw):
-		print user_kw
-		print answer_kw
 		kws = [a for a in user_kw if a in answer_kw]
 		return len(kws) / float(len(user_kw))
 

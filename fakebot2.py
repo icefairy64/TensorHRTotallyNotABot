@@ -15,7 +15,11 @@ class Bot:
 
             for update in updates:
                 print(update.message.text)
-                handle_incoming_message(update.message.sender.id, update.message.text, False, self.send)
+                if update.message.text == '/start':
+                    handle_start(update.message.sender.id, self.send)
+                else:
+                    handle_incoming_message(update.message.sender.id, update.message.text, False, self.send)
+                    
                 self.offset = update.update_id + 1
 
             sleep(1)

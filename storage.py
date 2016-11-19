@@ -200,5 +200,11 @@ def store_session(session, session_id):
         conn.execute(u"insert into sessions (session_id, state, jo_question, quiz_question) values ({}, {}, {}, {})".format(nf(session_id), nf(session.state), nf(session.jo_question.name), nf(session.quiz_question.qid)))
         conn.commit()
 
+def delete_session(session_id):
+    conn = sqlite3.connect("storage.db")
+    conn.execute(u"delete from sessions where session_id = {}".format(nf(session_id)))
+    conn.commit()
+    conn.close()
+
 def get_random_answer():
     return random.choice(random_answers)

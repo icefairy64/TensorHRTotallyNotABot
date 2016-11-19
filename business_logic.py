@@ -63,6 +63,19 @@ def get_overall_grade(user):
         sum += x.grade
     return sum
 
+def handle_start(sender_id, send_callback):
+    if not is_active:
+        return
+
+    session = active_sessions.get(sender_id)
+
+    if session is not None:
+        del active_sessions[sender_id]
+        storage.delete_session(sender_id)
+
+    handle_incoming_message(sender_id, '', False, send_callback)
+
+
 def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
     if not is_active:
         return
