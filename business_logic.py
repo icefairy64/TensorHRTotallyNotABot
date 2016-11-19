@@ -96,8 +96,9 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
 
         storage.store_users_answer(session.user, quest, text, mark)
 
-        answer_rate = eval_answer_rate(
-            storage.fetch_answers_for_user(session.user))
+        answs = storage.fetch_answers_for_user(session.user)
+
+        answer_rate = eval_answer_rate(answs)
 
         if answer_rate >= 1:
             n_quest = storage.fetch_next_question_for_user(
@@ -110,9 +111,15 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
                 session.user, quest.category.cid, quest.level)
 
         if n_quest is None:
-            session.state = storage.Session.STATE_FIN
-            send_callback(sender_id, u"Спасибо за ответы, мы с вами свяжемся.", [])
-            # TODO Save results
+            if (len(answs) < 20):
+                n_quest = storage.fetch_next_question_for_user(
+                    session.user, quest.category.cid, quest.level + 1)
+                send_quiz_question(sender_id, n_quest, send_callback)
+                session.quiz_question = n_quest
+            else:
+                session.state = storage.Session.STATE_FIN
+                send_callback(sender_id, u"Спасибо за ответы, мы с вами свяжемся.\nУдачного дня!", [])
+                # TODO Save results
         else:
             send_quiz_question(sender_id, n_quest, send_callback)
             session.quiz_question = n_quest

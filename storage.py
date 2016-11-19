@@ -147,15 +147,16 @@ def fetch_next_question_for_user(user, cat, level):
 def store_user(telegram_id, name=None, age=None, learn_exp=None, work_exp=None, skills=None, desired_job=None):
     exists = False
     uid = -1
-    for row in conn.execute("select id from users where telegram_id={}".format(telegram_id)):
+    for row in conn.execute("select id from users where telegram_id=?", [nf(telegram_id)]):
         uid = row[0]
         exists = True
         break
     if exists:
-        query = u"update users set telegram_id={}, name={}, age={}, learn_exp={}, work_exp={}, skills={}, desired_job={} where id={}".format(nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills), nf(desired_job), nf(uid))
+        query = u"update users set telegram_id=?, name=?, age=?, learn_exp=?, work_exp=?, skills=?, desired_job=? where id=?"
+        conn.execute(query, [nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills), nf(desired_job), nf(uid)])
     else:
-        query = u"insert into users (telegram_id, name, age, learn_exp, work_exp, skills, desired_job) values ({}, {}, {}, {}, {}, {}, {})".format(nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills), nf(desired_job))
-    conn.execute(query)
+        query = u"insert into users (telegram_id, name, age, learn_exp, work_exp, skills, desired_job) values (?, ?, ?, ?, ?, ?, ?)"
+        conn.execute(query, [nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills), nf(desired_job)])
     conn.commit()
 
 def update_user(user):
