@@ -1,5 +1,8 @@
+# -*- encoding: utf-8 -*-
+
 # import telegram_botapi
 import storage
+import jo_questions
 
 class Session:
     def __init__(self, user):
@@ -8,7 +11,7 @@ class Session:
 
 active_sessions = {}
 
-def handle_incoming_message(text, is_keyboard, sender_id):
+def handle_incoming_message(sender_id, text, is_keyboard):
     session = active_sessions[sender_id]
 
     if (session is None):
@@ -35,3 +38,11 @@ else:
     
     print(storage.fetch_next_question_for_user(user, 1))
     print(storage.fetch_next_question_for_user(user, 2))
+
+# JO Questions example
+
+question = jo_questions.questions["КакаяВакансия"]
+if not (question is None):
+    print("JO Question: {}".format(question.text))
+    for answer in question.answers:
+        print("\tAnswer -- keywords: {}, next question: {}".format(answer.keywords, answer.next_question.text))
