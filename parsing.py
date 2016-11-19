@@ -24,7 +24,6 @@ def split_string(string):
         if word in dic_typos: # Если слово есть в списке опечаток
             for typo in (typo.split(' ') for typo in dic_typos[word]): # То записываем исправленные
                 if type(typo) == type(str):
-
                     parsing_word = morph.parse(typo) # Парсим слова
                 else: # список, разделили по пробелам
                     for typ in typo:
@@ -46,3 +45,4 @@ def correct(text):
     
 
 morph = pymorphy2.MorphAnalyzer()
+print(split_string('Здраствуйте! Миня завут Олег, ябы хотел работать в вашей кампании праграммистом'))
