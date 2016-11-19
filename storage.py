@@ -122,5 +122,5 @@ def fetch_answers_for_user(user):
     return res
 
 def store_users_answer(user, question, answer_text, grade):
-    conn.execute("insert into users_answers (user_id, question_id, raw_answer, answer_grade, answer_time) values ({}, {}, {}, {}, {})".format(user.uid, question.qid, nf(answer_text), grade, int(time.time()))
+    conn.execute("insert into users_answers (user_id, question_id, raw_answer, answer_grade, answer_time) values ({}, {}, {}, {}, {})".format(user.uid, question.qid, nf(answer_text), grade, int(time.time())))
     conn.commit()
