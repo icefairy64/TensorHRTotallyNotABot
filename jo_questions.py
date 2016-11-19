@@ -2,6 +2,7 @@
 
 import json
 import io
+import codecs
 
 class JOAnswer:
     def __init__(self, dct):
@@ -17,7 +18,7 @@ class JOQuestion:
 questions = {}
 
 dct = None
-with open("jo-questions.json", "r", encoding="utf-8") as q:
+with codecs.open("jo-questions.json", "r", encoding="utf-8") as q:
     dct = json.load(q)
 
 if dct is not None:
