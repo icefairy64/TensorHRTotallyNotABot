@@ -18,7 +18,7 @@ class Bot:
                 handle_incoming_message(update.message.sender.id, update.message.text, False, self.send)
                 self.offset = update.update_id + 1
 
-            sleep(6)
+            sleep(1)
 
     def send(self, user_id, text, keyboard_list):
         return self.bot.send_message(user_id, text).wait()

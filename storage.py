@@ -4,6 +4,7 @@ import sqlite3
 import json
 import random
 import time
+import jo_questions
 
 conn = sqlite3.connect("storage.db")
 
@@ -56,12 +57,12 @@ class Session:
             self.state = state
 
         if jo_question is None:
-            self.jo_question = jo_questions.questions[u"КакаяВакансия"]
+            self.jo_question = jo_questions.questions[u"Начало"]
         else:
             self.jo_question = jo_question
 
 def nf(data):
-    if isinstance(data, str):
+    if isinstance(data, str) or isinstance(data, unicode):
         return "'" + data + "'"
     elif data is None:
         return "NULL"
@@ -125,7 +126,7 @@ def fetch_next_question_for_user(user, level):
 def store_user(telegram_id, name=None, age=None, learn_exp=None, work_exp=None, skills=None):
     exists = False
     uid = -1
-    for row in conn.execute("select * from users"):
+    for row in conn.execute("select id from users where telegram_id={}".format(telegram_id)):
         uid = row[0]
         exists = True
         break
@@ -161,7 +162,7 @@ def store_session(session, session_id):
         exists = True
         sid = row[0]
     if exists:
-        conn.execute("update sessions set state={}, jo_question={} where session_id={}".format(nf(session.state), nf(session.jo_question), sid))
+        conn.execute(u"update sessions set state={}, jo_question={} where session_id={}".format(nf(session.state), nf(session.jo_question.name), sid))
     else:
-        conn.execute("insert into session (state, jo_question) values ({}, {})".format(nf(session.state), nf(session.jo_question)))
+        conn.execute(u"insert into sessions (session_id, state, jo_question) values ({}, {}, {})".format(nf(session_id), nf(session.state), nf(session.jo_question.name)))
     conn.commit()

@@ -10,7 +10,7 @@
     },
     "Имя": {
         "text": "Как к вам можно обращаться?",
-        "saveTo": "name",
+        "save_to": "name",
         "answers": [
             {
                 "kw": [],
@@ -20,7 +20,7 @@
     },
     "Возраст": {
         "text": "Сколько вам лет?",
-        "saveTo": "age",
+        "save_to": "age",
         "answers": [
             {
                 "kw": [],
@@ -30,7 +30,7 @@
     },
     "Учеба": {
         "text": "Какое у вас образование? Что заканчивали?",
-        "saveTo": "learn_exp",
+        "save_to": "learn_exp",
         "answers": [
             {
                 "kw": [],
@@ -40,7 +40,7 @@
     },
     "ОпытРаботы": {
         "text": "Раньше где-то работали?",
-        "saveTo": "work_exp",
+        "save_to": "work_exp",
         "answers": [
             {
                 "kw": [],
@@ -50,7 +50,7 @@
     },
     "Скилы": {
         "text": "Какими технологиями интересуетесь?",
-        "saveTo": "skills",
+        "save_to": "skills",
         "answers": [
             {
                 "kw": [],
