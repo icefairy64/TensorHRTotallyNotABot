@@ -22,6 +22,14 @@ class Question:
         self.text = text
         self.answer = answer
 
+    def get_params(self):
+        if self.answer["type"] == 0:
+            return unicode(self.answer["right_answer"])
+        elif self.answer["type"] == 1:
+            return self.answer["right_answer"]
+        elif self.answer["type"] == 2:
+            return self.answer["keywords"]
+
 class User:
     def __init__(self, uid, telegram_id, name, age, learn_exp, work_exp, skills, desired_job):
         self.uid = uid
@@ -43,29 +51,6 @@ class UsersAnswer:
         self.text = text
         self.grade = grade
         self.timestamp = timestamp
-
-class Session:
-
-    STATE_JO = "JO"
-    STATE_QUIZ = "QUIZ"
-
-    def __init__(self, user, state=None, jo_question=None, quiz_question=None):
-        self.user = user
-
-        if state is None:
-            self.state = Session.STATE_JO
-        else:
-            self.state = state
-
-        if jo_question is None:
-            self.jo_question = jo_questions.questions[u"Начало"]
-        else:
-            self.jo_question = jo_question
-
-        if quiz_question is None:
-            self.quiz_question = None
-        else:
-            self.quiz_question = quiz_question
 
 def nf(data):
     if isinstance(data, str) or isinstance(data, unicode):
@@ -95,6 +80,29 @@ def fetch_questions():
 g_categories = fetch_categories()
 g_questions = fetch_questions()
 
+class Session:
+
+    STATE_JO = "JO"
+    STATE_QUIZ = "QUIZ"
+
+    def __init__(self, user, state=None, jo_question=None, quiz_question=None):
+        self.user = user
+
+        if state is None:
+            self.state = Session.STATE_JO
+        else:
+            self.state = state
+
+        if jo_question is None:
+            self.jo_question = jo_questions.questions[u"Начало"]
+        else:
+            self.jo_question = jo_question
+
+        if quiz_question is None:
+            self.quiz_question = g_questions[1]
+        else:
+            self.quiz_question = quiz_question
+
 def question_order(question):
     return question.level * 65535 + question.num
 
@@ -121,9 +129,9 @@ def fetch_user_by_telegramid(telegram_id):
         return user_fromdb(row)
     raise Exception("Could not find user with Telegram ID '{}'".format(telegram_id))
 
-def fetch_next_question_for_user(user, level):
+def fetch_next_question_for_user(user, cat, level):
     answered = user.get_answers()
-    qs = [x for x in g_questions if x.level == level and len([z for z in answered if z.question.qid == x.qid]) == 0]
+    qs = [x for x in g_questions if x.level == level and x.category.cid == cat and len([z for z in answered if z.question.qid == x.qid]) == 0]
     if len(qs) == 0:
         return None
     return random.choice(qs)
