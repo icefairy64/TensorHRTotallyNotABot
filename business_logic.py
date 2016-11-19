@@ -38,6 +38,13 @@ def send_quiz_question(target, question, callback):
         lst = []
     callback(target, question.text, lst)
 
+def get_overall_grade(user):
+    answers = storage.fetch_answers_for_user(user)
+    sum = 0.0
+    for x in answers:
+        sum += x.grade
+    return sum
+
 def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
     session = active_sessions.get(sender_id)
 
@@ -72,7 +79,7 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
             send_callback(sender_id, n_jo_quest.text, [])
             session.jo_question = n_jo_quest
         else:
-             # Переходим на тестирование
+            # Переходим на тестирование
             session.state = storage.Session.STATE_QUIZ
             # TODO Использовать не-захадкоженную категорию
             session.quiz_question = storage.fetch_next_question_for_user(
@@ -103,14 +110,15 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
                 session.user, quest.category.cid, quest.level)
 
         if n_quest is None:
-            session.state = "FIN"
-            send_callback(sender_id, u"Конец", [])
+            session.state = storage.Session.STATE_FIN
+            send_callback(sender_id, u"Спасибо за ответы, мы с вами свяжемся.", [])
+            # TODO Save results
         else:
             send_quiz_question(sender_id, n_quest, send_callback)
             session.quiz_question = n_quest
 
     elif session.state == storage.Session.STATE_FIN:
         # TODO Fetch random text
-        send_callback(sender_id, u"Конец", [])
+        send_callback(sender_id, storage.get_random_answer(), [])
 
     storage.store_session(session, sender_id)

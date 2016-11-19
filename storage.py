@@ -5,6 +5,7 @@ import json
 import random
 import time
 import jo_questions
+import codecs
 
 conn = sqlite3.connect("storage.db")
 
@@ -80,6 +81,9 @@ def fetch_questions():
 g_categories = fetch_categories()
 g_questions = fetch_questions()
 
+rnda = codecs.open("universal_answer.txt", "r", encoding="utf-8")
+random_answers = rnda.readlines()
+
 class Session:
 
     STATE_JO = "JO"
@@ -134,7 +138,7 @@ def fetch_next_question_for_user(user, cat, level):
     answered = user.get_answers()
 
     qs = [x for x in g_questions if x.level == level and x.category.cid == cat and len([z for z in answered if z.question.qid == x.qid]) == 0]
-    
+
     if len(qs) == 0:
         return None
     return random.choice(qs)
@@ -189,3 +193,6 @@ def store_session(session, session_id):
     else:
         conn.execute(u"insert into sessions (session_id, state, jo_question, quiz_question) values ({}, {}, {}, {})".format(nf(session_id), nf(session.state), nf(session.jo_question.name), nf(session.quiz_question.qid)))
     conn.commit()
+
+def get_random_answer():
+    return random.choice(random_answers)
