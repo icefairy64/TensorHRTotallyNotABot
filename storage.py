@@ -74,14 +74,14 @@ def user_fromdb(row):
 
 def fetch_categories():
     res = {}
-    for row in conn.execute("select * from question_categories"):
+    for row in conn.execute(u"select * from question_categories"):
         res[row[0]] = (QuestionCategory(row[0], row[1]))
     return res
 
 def fetch_questions():
     res = []
     cats = fetch_categories()
-    for row in conn.execute("select * from quizzes"):
+    for row in conn.execute(u"select * from quizzes"):
         print("Debug info: ", row[0])
         res.append(Question(cats[row[1]], row[2], row[3], row[4], json.loads(row[5]), row[0]))
     return res
@@ -111,7 +111,7 @@ def fetch_next_question_onlevel(question_id):
     return samelvl[0]
 
 def fetch_user_by_telegramid(telegram_id):
-    for row in conn.execute("select * from users where telegram_id={}".format(telegram_id)):
+    for row in conn.execute(u"select * from users where telegram_id={}".format(telegram_id)):
         return user_fromdb(row)
     raise Exception("Could not find user with Telegram ID '{}'".format(telegram_id))
 
@@ -131,9 +131,9 @@ def store_user(telegram_id, name=None, age=None, learn_exp=None, work_exp=None, 
         exists = True
         break
     if exists:
-        query = "update users set telegram_id={}, name={}, age={}, learn_exp={}, work_exp={}, skills={} where id={}".format(nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills), nf(uid))
+        query = u"update users set telegram_id={}, name={}, age={}, learn_exp={}, work_exp={}, skills={} where id={}".format(nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills), nf(uid))
     else:
-        query = "insert into users (telegram_id, name, age, learn_exp, work_exp, skills) values ({}, {}, {}, {}, {}, {})".format(nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills))
+        query = u"insert into users (telegram_id, name, age, learn_exp, work_exp, skills) values ({}, {}, {}, {}, {}, {})".format(nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills))
     conn.execute(query)
     conn.commit()
 
@@ -142,23 +142,23 @@ def update_user(user):
 
 def fetch_answers_for_user(user):
     res = []
-    for row in conn.execute("select question_id, raw_answer, answer_grade, answer_time from users_answers where user_id={} order by answer_time".format(user.uid)):
+    for row in conn.execute(u"select question_id, raw_answer, answer_grade, answer_time from users_answers where user_id={} order by answer_time".format(user.uid)):
         res.append(UsersAnswer(user, next(x for x in g_questions if x.qid == row[0]), row[1], row[2], row[3]))
     return res
 
 def store_users_answer(user, question, answer_text, grade):
-    conn.execute("insert into users_answers (user_id, question_id, raw_answer, answer_grade, answer_time) values ({}, {}, {}, {}, {})".format(user.uid, question.qid, nf(answer_text), grade, int(time.time())))
+    conn.execute(u"insert into users_answers (user_id, question_id, raw_answer, answer_grade, answer_time) values ({}, {}, {}, {}, {})".format(user.uid, question.qid, nf(answer_text), grade, int(time.time())))
     conn.commit()
 
 def fetch_session(session_id):
-    for row in conn.execute("select state, jo_question from sessions where session_id={}".format(session_id)):
+    for row in conn.execute(u"select state, jo_question from sessions where session_id={}".format(session_id)):
         return Session(fetch_user_by_telegramid(session_id), row[0], jo_questions.questions[row[1]])
     return None
 
 def store_session(session, session_id):
     exists = False
     sid = -1
-    for row in conn.execute("select session_id from sessions where session_id={}".format(session_id)):
+    for row in conn.execute(u"select session_id from sessions where session_id={}".format(session_id)):
         exists = True
         sid = row[0]
     if exists:
