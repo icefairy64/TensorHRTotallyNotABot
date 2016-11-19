@@ -24,6 +24,6 @@ else:
 
 question = jo_questions.questions[u"КакаяВакансия"]
 if not (question is None):
-    print("JO Question: {}".format(question.text.encode('utf-8', "replace")))
+    print(u"JO Question: {}".format(question.text))
     for answer in question.answers:
-        print("\tAnswer -- keywords: {}, next question: {}".format(answer.keywords, answer.next_question.text.encode('utf-8', "replace")))
+        print(u"\tAnswer -- keywords: {}, next question: {}".format(answer.keywords, answer.next_question.text))
