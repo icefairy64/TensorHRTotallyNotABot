@@ -3,6 +3,7 @@
 # import telegram_botapi
 import storage
 import jo_questions
+import random
 
 from parsing import *
 from quiz.answer_evaluation import *
@@ -38,6 +39,13 @@ def send_quiz_question(target, question, callback):
         lst = []
     callback(target, question.text, lst)
 
+def send_jo_question(target, question, callback):
+    if isinstance(question.text, unicode) or isinstance(question.text, str):
+        text = question.text
+    else:
+        text = random.choice(question.text)
+    callback(target, text, [])
+
 def get_overall_grade(user):
     answers = storage.fetch_answers_for_user(user)
     sum = 0.0
@@ -59,7 +67,7 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
         user = storage.fetch_user_by_telegramid(sender_id)
         session = storage.Session(user)
         active_sessions[sender_id] = session
-        send_callback(sender_id, session.jo_question.text, [])
+        send_jo_question(sender_id, session.jo_question, send_callback)
         storage.store_session(session, sender_id)
         return
 
@@ -76,7 +84,7 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
         n_jo_quest = answer.next_question
 
         if n_jo_quest is not None:
-            send_callback(sender_id, n_jo_quest.text, [])
+            send_jo_question(sender_id, n_jo_quest, send_callback)
             session.jo_question = n_jo_quest
         else:
             # Переходим на тестирование
