@@ -61,7 +61,7 @@ def fetch_questions():
     res = []
     cats = fetch_categories()
     for row in conn.execute("select * from quizzes"):
-        print(row[0])
+        # print(row[0])
         res.append(Question(cats[row[1]], row[2], row[3], row[4], json.loads(row[5]), row[0]))
     return res
 

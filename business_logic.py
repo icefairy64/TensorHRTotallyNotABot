@@ -22,7 +22,7 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
 
     # Если сессия не найдена - создаем новую
 
-    if (session is None):
+    if session is None:
         storage.store_user(telegram_id=sender_id)
         user = storage.fetch_user_by_telegramid(sender_id)
         session = Session(user)
