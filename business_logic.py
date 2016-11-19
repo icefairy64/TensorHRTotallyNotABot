@@ -31,6 +31,12 @@ def eval_answer_rate(answers):
 
     return 0
 
+def send_quiz_question(target, question, callback):
+    if question.answer["type"] == 0:
+        lst = question.answer["right_answer"]
+    else:
+        lst = []
+    callback(target, question.text, lst)
 
 def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
     session = active_sessions.get(sender_id)
@@ -39,6 +45,7 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
 
     if session is None:
         session = storage.fetch_session(sender_id)
+        active_sessions[sender_id] = session
 
     if session is None:
         storage.store_user(telegram_id=sender_id)
@@ -59,17 +66,18 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
             # Если ответ не был записан в анкету, значит надо проанализировать его
             answer = jo_questions.get_best_answer(text, session.jo_question)
 
-        session.jo_question = answer.next_question
+        n_jo_quest = answer.next_question
 
-        if session.jo_question is not None:
+        if n_jo_quest is not None:
             send_callback(sender_id, session.jo_question.text, [])
+            session.jo_question = n_jo_quest
         else:
              # Переходим на тестирование
             session.state = storage.Session.STATE_QUIZ
             # TODO Использовать не-захадкоженную категорию
             session.quiz_question = storage.fetch_next_question_for_user(
                 session.user, 1, 1)
-            send_callback(sender_id, session.quiz_question.text, [])
+            send_quiz_question(sender_id, session.quiz_question, send_callback)
 
     elif session.state == storage.Session.STATE_QUIZ:
         quest = session.quiz_question
@@ -98,7 +106,8 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
             session.state = "FIN"
             send_callback(sender_id, u"Конец", [])
         else:
-            send_callback(sender_id, n_quest.text, [])
+            send_quiz_question(sender_id, n_quest, send_callback)
+            session.quiz_question = n_quest
 
     elif session.state == storage.Session.STATE_FIN:
         # TODO Fetch random text

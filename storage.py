@@ -132,7 +132,9 @@ def fetch_user_by_telegramid(telegram_id):
 
 def fetch_next_question_for_user(user, cat, level):
     answered = user.get_answers()
+
     qs = [x for x in g_questions if x.level == level and x.category.cid == cat and len([z for z in answered if z.question.qid == x.qid]) == 0]
+    
     if len(qs) == 0:
         return None
     return random.choice(qs)
