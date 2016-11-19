@@ -10,6 +10,14 @@ from quiz.answer_evaluation import *
 
 active_sessions = {}
 
+is_active = True
+
+def pause():
+    is_active = False
+    return True
+
+def restore():
+    is_active = True
 
 def eval_answer_rate(answers):
     if len(answers) >= 5:
@@ -54,6 +62,9 @@ def get_overall_grade(user):
     return sum
 
 def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
+    if not is_active:
+        return
+
     session = active_sessions.get(sender_id)
 
     # Если сессия не найдена - создаем новую
