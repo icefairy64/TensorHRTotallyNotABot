@@ -1,79 +1,62 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import BaseHTTPServer
-import ssl
-import datetime
-import log_bot
+# This is a simple echo bot using decorators and webhook with CherryPy
+# It echoes any incoming text messages and does not use the polling method.
+
+import cherrypy
 import telebot
-#import business_logic
-import config_bot 
+import logging
+import config_bot
 from config_bot import bot
+from telebot import types
+import business_logic
+import log_bot
 
-id_list = [] #список зарегистрированных пользователей
-buttonFact = True #изначально True, изменяется при получении текстового сообщения
-
-# WebhookHandler, process webhook calls
-class WebhookHandler(BaseHTTPServer.BaseHTTPRequestHandler):
-    server_version = "WebhookHandler/1.0"
-
-    def do_HEAD(self):
-        self.send_response(200)
-        self.end_headers()
-
-    def do_GET(self):
-        self.send_response(200)
-        self.end_headers()
-
-    def do_POST(self):
-        if self.path == config_bot.WEBHOOK_URL_PATH and \
-           'content-type' in self.headers and \
-           'content-length' in self.headers and \
-           self.headers['content-type'] == 'application/json':
-            json_string = self.rfile.read(int(self.headers['content-length']))
-
-            self.send_response(200)
-            self.end_headers()
-
+# WebhookServer, process webhook calls
+class WebhookServer(object):
+    @cherrypy.expose
+    def index(self):
+        if 'content-length' in cherrypy.request.headers and \
+           'content-type' in cherrypy.request.headers and \
+           cherrypy.request.headers['content-type'] == 'application/json':
+            length = int(cherrypy.request.headers['content-length'])
+            json_string = cherrypy.request.body.read(length).decode("utf-8")
             update = telebot.types.Update.de_json(json_string)
-            bot.process_new_messages([update.message])
+            bot.process_new_updates([update])
+            return ''
         else:
-            self.send_error(403)
-            self.end_headers()
+            raise cherrypy.HTTPError(403)
 
 
-# Handle '/start' and '/help'
-@bot.message_handler(commands=['help', 'start'])
-def send_welcome(message):
-    bot.reply_to(message,
-                 ("Hi there, I am EchoBot.\n"
-                  "I am here to echo your kind words back to you."))
+def send_message(id,text,list):
+    if list.count == 0:
+        bot.send_message(id, text)
+    else:
+        keyboard = types.InlineKeyboardMarkup(row_width=2)
+        for it in list:
+           print(it)
+           keyboard.add(types.InlineKeyboardButton(text=it, callback_data=it))
+        bot.send_message(id, text, reply_markup=keyboard)
 
 
-# Handle all other messages
-@bot.message_handler(func=lambda message: True, content_types=['text'])
-def echo_message(message):
-    bot.reply_to(message, message.text)
-    log_bot.write_message(message.char.id,message.text)
-    business_logic.handle_incoming_message(message.char.id,message.text,False)
-    
+@bot.message_handler(content_types=["text"])
+def any_msg(message):
+    list = ["pret","pok", "text"]
+    send_message(message.chat.id,message.text,list)
+    business_logic.handle_incoming_message(message.chat.id,message.text,False,send_message)
+    log_bot.write_message(message.chat.id,message.text)
 
-#@bot.message_handler(content_types=["inline_keyboard"])
- 
-#def CreateNewUser(message.chat.id, message.chat.first_name, message.chat.last_name): 
-    #id_list.append(message.chat.id)
 
-#@bot.message_handler(content_types=["text"]) #вызывает следующий метод, когда боту приходит сообщение типа text		
-#def List(message):  #Поиск ID в листе
-    #if message.chat.id in id_list == False
-    #   CreateNewUser(message.chat.id, message.chat.first_name, message.chat.last_name)
-#   buttonFact = False
-    #Message(message,buttonFact) 
-    #bot.send_message( message.chat.id, "Эхо канал" )
-
-#@bot.message_handler(func=lambda message: True, content_types=['text'])
-#def echo_message(message):
- #   bot.reply_to(message, message.text)
+@bot.callback_query_handler(func=lambda call: True)
+def callback_inline(call):
+    # Если сообщение из чата с ботом
+    if call.message:
+        business_logic.handle_incoming_message(call.message.chat.id, call.message.text, True, send_message)
+        log_bot.write_message(call.message.chat.id, call.message.text)
+        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Пыщь")
+        # Уведомление в верхней части экрана
+        bot.answer_callback_query(callback_query_id=call.id, show_alert=False, text="Пыщь!")
 
 
 
@@ -81,17 +64,16 @@ def echo_message(message):
 bot.remove_webhook()
 
 # Set webhook
-bot.set_webhook( url = config_bot.WEBHOOK_URL_BASE + config_bot.WEBHOOK_URL_PATH, certificate = open( config_bot.WEBHOOK_SSL_CERT, 'r' ) )
+bot.set_webhook(url=config_bot.WEBHOOK_URL_BASE + config_bot.WEBHOOK_URL_PATH,
+                certificate=open( config_bot.WEBHOOK_SSL_CERT, 'r' ) )
 
-# Start server
-httpd = BaseHTTPServer.HTTPServer((config_bot.WEBHOOK_LISTEN, config_bot.WEBHOOK_PORT),
-                                  WebhookHandler)
+# Start cherrypy server
+cherrypy.config.update({
+    'server.socket_host': config_bot.WEBHOOK_LISTEN,
+    'server.socket_port': config_bot.WEBHOOK_PORT,
+    'server.ssl_module': 'builtin',
+    'server.ssl_certificate': config_bot.WEBHOOK_SSL_CERT,
+    'server.ssl_private_key': config_bot.WEBHOOK_SSL_PRIV
+})
 
-httpd.socket = ssl.wrap_socket(httpd.socket,
-                               certfile=config_bot.WEBHOOK_SSL_CERT,
-                               keyfile=config_bot.WEBHOOK_SSL_PRIV,
-                               server_side=True)
-
-httpd.serve_forever()
-
-
+cherrypy.quickstart(WebhookServer(), config_bot.WEBHOOK_URL_PATH, {'/': {}})
