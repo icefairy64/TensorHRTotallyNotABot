@@ -13,6 +13,7 @@ class Question:
     def __init__(self, category, level, num, text, answer, qid):
         self.category = category
         self.level = level
+        self.num = num
         self.qid = qid
         self.text = text
         self.answer = answer
@@ -28,9 +29,9 @@ class User:
         self.skills = skills
 
 def nf(data):
-    if type(data) == types.StringType:
+    if isinstance(data, str):
         return "'" + data + "'"
-    elif type(data) == types.NoneType:
+    elif data is None:
         return "NULL"
     else:
         return data
@@ -50,6 +51,30 @@ def fetch_questions():
     for row in conn.execute("select * from quizzes"):
         res.append(Question(cats[row[1]], row[2], row[3], row[4], json.loads(row[5]), row[0]))
     return res
+
+g_categories = fetch_categories()
+g_questions = fetch_questions()
+
+def question_order(question):
+    return question.level * 65535 + question.num
+
+def fetch_next_question(question_id):
+    """Returns next question relative to given one (with possible level change) or None if there is no more questions within that category"""
+    tq = next(x for x in g_questions if x.qid == question_id)
+    samecat = [x for x in g_questions if x.category.cid == tq.category.cid and question_order(x) > question_order(tq)]
+    samecat.sort(key=question_order)
+    if len(samecat) == 0:
+        return None
+    return samecat[0]
+
+def fetch_next_question_onlevel(question_id):
+    """Returns next question within one level with given one or None if there is no more questions on that level"""
+    tq = next(x for x in g_questions if x.qid == question_id)
+    samelvl = [x for x in g_questions if x.category.cid == tq.category.cid and x.level == tq.level and x.num > tq.num]
+    samelvl.sort(key=question_order)
+    if len(samelvl) == 0:
+        return None
+    return samelvl[0]
 
 def fetch_user_by_telegramid(telegram_id):
     for row in conn.execute("select * from users where telegram_id={}".format(telegram_id)):
