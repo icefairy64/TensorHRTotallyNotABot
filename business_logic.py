@@ -18,7 +18,7 @@ class Session:
 active_sessions = {}
 
 def handle_incoming_message(sender_id, text, is_keyboard):
-    session = active_sessions[sender_id]
+    session = active_sessions.get(sender_id)
 
     # Если сессия не найдена - создаем новую
 
