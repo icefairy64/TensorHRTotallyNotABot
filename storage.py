@@ -1,3 +1,5 @@
+# -*- encoding: utf-8 -*-
+
 import sqlite3
 import json
 import random
@@ -39,6 +41,24 @@ class UsersAnswer:
         self.text = text
         self.grade = grade
         self.timestamp = timestamp
+
+class Session:
+
+    STATE_JO = "JO"
+    STATE_QUIZ = "QUIZ"
+
+    def __init__(self, user, state=None, jo_question=None):
+        self.user = user
+
+        if state is None:
+            self.state = Session.STATE_JO
+        else:
+            self.state = state
+
+        if jo_question is None:
+            self.jo_question = jo_questions.questions[u"КакаяВакансия"]
+        else:
+            self.jo_question = jo_question
 
 def nf(data):
     if isinstance(data, str):
@@ -127,4 +147,21 @@ def fetch_answers_for_user(user):
 
 def store_users_answer(user, question, answer_text, grade):
     conn.execute("insert into users_answers (user_id, question_id, raw_answer, answer_grade, answer_time) values ({}, {}, {}, {}, {})".format(user.uid, question.qid, nf(answer_text), grade, int(time.time())))
+    conn.commit()
+
+def fetch_session(session_id):
+    for row in conn.execute("select state, jo_question from sessions where session_id={}".format(session_id)):
+        return Session(fetch_user_by_telegramid(session_id), row[0], row[1])
+    return None
+
+def store_session(session, session_id):
+    exists = False
+    sid = -1
+    for row in conn.execute("select session_id from sessions where session_id={}".format(session_id)):
+        exists = True
+        sid = row[0]
+    if exists:
+        conn.execute("update sessions set state={}, jo_question={} where session_id={}".format(nf(session.state), nf(session.jo_question), sid))
+    else:
+        conn.execute("insert into session (state, jo_question) values ({}, {})".format(nf(session.state), nf(session.jo_question)))
     conn.commit()
