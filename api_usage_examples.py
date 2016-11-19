@@ -2,6 +2,7 @@
 
 import storage
 import jo_questions
+import user_report_generator
 
 # Some examples of Storage API usage
 
@@ -27,3 +28,7 @@ if not (question is None):
     print(u"JO Question: {}".format(question.text))
     for answer in question.answers:
         print(u"\tAnswer -- keywords: {}, next question: {}".format(answer.keywords, answer.next_question.text))
+
+# Report generation
+
+user_report_generator.generate_report_for_user(user, "demo-rep.txt")

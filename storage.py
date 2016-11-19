@@ -61,6 +61,7 @@ def fetch_questions():
     res = []
     cats = fetch_categories()
     for row in conn.execute("select * from quizzes"):
+        print(row[0])
         res.append(Question(cats[row[1]], row[2], row[3], row[4], json.loads(row[5]), row[0]))
     return res
 
@@ -114,6 +115,9 @@ def store_user(telegram_id, name=None, age=None, learn_exp=None, work_exp=None, 
         query = "insert into users (telegram_id, name, age, learn_exp, work_exp, skills) values ({}, {}, {}, {}, {}, {})".format(nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills))
     conn.execute(query)
     conn.commit()
+
+def update_user(user):
+    store_user(user.telegram_id, user.name, user.age, user.learn_exp, user.work_exp, user.skills)
 
 def fetch_answers_for_user(user):
     res = []
