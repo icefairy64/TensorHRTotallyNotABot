@@ -82,7 +82,7 @@ def fetch_questions():
     res = []
     cats = fetch_categories()
     for row in conn.execute("select * from quizzes"):
-        # print(row[0])
+        print("Debug info: ", row[0])
         res.append(Question(cats[row[1]], row[2], row[3], row[4], json.loads(row[5]), row[0]))
     return res
 
@@ -152,7 +152,7 @@ def store_users_answer(user, question, answer_text, grade):
 
 def fetch_session(session_id):
     for row in conn.execute("select state, jo_question from sessions where session_id={}".format(session_id)):
-        return Session(fetch_user_by_telegramid(session_id), row[0], row[1])
+        return Session(fetch_user_by_telegramid(session_id), row[0], jo_questions.questions[row[1]])
     return None
 
 def store_session(session, session_id):
