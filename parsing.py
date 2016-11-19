@@ -17,7 +17,7 @@ def split_string(string):
     dic_typos = correct(string)
 
     # Cоздание списка из слов строки, без знаков пунктуации
-    words = re.split('\W+', string)
+    words = re.split(ur'[\s\.,\-!@#\$%\^\&\*\(\)\+=\[\]\'\"\:;\<\>\?]+', string)
 
     # Формируем выходной список
 
