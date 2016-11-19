@@ -1,6 +1,7 @@
 import sqlite3
 import json
 import types
+import random
 
 conn = sqlite3.connect("storage.db")
 
@@ -91,6 +92,14 @@ def fetch_user_by_telegramid(telegram_id):
     for row in conn.execute("select * from users where telegram_id={}".format(telegram_id)):
         return user_fromdb(row)
     raise Exception("Could not find user with Telegram ID '{}'".format(telegram_id))
+
+def fetch_next_question_for_user(user, level):
+    answered = user.get_answers()
+    qs = [x for x in g_questions if x.level == level and len([z for z in answered if z.question.qid == x.qid]) == 0]
+    if len(qs) == 0:
+        return None
+    return random.choice(qs)
+    
 
 def store_user(telegram_id, name, age, learn_exp, work_exp, skills):
     exists = False

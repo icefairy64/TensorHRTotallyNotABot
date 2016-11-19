@@ -17,3 +17,6 @@ else:
 
     for answer in user.get_answers():
         print("Question: '{}'; answer: '{}'; grade: {}".format(answer.question.text, answer.text, answer.grade))
+    
+    print(storage.fetch_next_question_for_user(user, 1))
+    print(storage.fetch_next_question_for_user(user, 2))
