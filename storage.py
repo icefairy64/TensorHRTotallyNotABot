@@ -1,7 +1,7 @@
 import sqlite3
 import json
-import types
 import random
+import time
 
 conn = sqlite3.connect("storage.db")
 
@@ -101,7 +101,7 @@ def fetch_next_question_for_user(user, level):
     return random.choice(qs)
     
 
-def store_user(telegram_id, name, age, learn_exp, work_exp, skills):
+def store_user(telegram_id, name=None, age=None, learn_exp=None, work_exp=None, skills=None):
     exists = False
     uid = -1
     for row in conn.execute("select * from users"):
@@ -120,4 +120,7 @@ def fetch_answers_for_user(user):
     for row in conn.execute("select question_id, raw_answer, answer_grade, answer_time from users_answers where user_id={} order by answer_time".format(user.uid)):
         res.append(UsersAnswer(user, next(x for x in g_questions if x.qid == row[0]), row[1], row[2], row[3]))
     return res
-    
+
+def store_users_answer(user, question, answer_text, grade):
+    conn.execute("insert into users_answers (user_id, question_id, raw_answer, answer_grade, answer_time) values ({}, {}, {}, {}, {})".format(user.uid, question.qid, nf(answer_text), grade, int(time.time()))
+    conn.commit()
