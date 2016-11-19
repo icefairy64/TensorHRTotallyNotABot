@@ -28,6 +28,17 @@ class User:
         self.work_exp = work_exp
         self.skills = skills
 
+    def get_answers(self):
+        return fetch_answers_for_user(self)
+
+class UsersAnswer:
+    def __init__(self, user, question, text, grade, timestamp):
+        self.user = user
+        self.question = question
+        self.text = text
+        self.grade = grade
+        self.timestamp = timestamp
+
 def nf(data):
     if isinstance(data, str):
         return "'" + data + "'"
@@ -94,4 +105,10 @@ def store_user(telegram_id, name, age, learn_exp, work_exp, skills):
         query = "insert into users (telegram_id, name, age, learn_exp, work_exp, skills) values ({}, {}, {}, {}, {}, {})".format(nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills))
     conn.execute(query)
     conn.commit()
+
+def fetch_answers_for_user(user):
+    res = []
+    for row in conn.execute("select question_id, raw_answer, answer_grade, answer_time from users_answers where user_id={} order by answer_time".format(user.uid)):
+        res.append(UsersAnswer(user, next(x for x in g_questions if x.qid == row[0]), row[1], row[2], row[3]))
+    return res
     
