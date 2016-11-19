@@ -53,14 +53,15 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
         # TODO Оцениваем ответ пользователя
         # TODO Отправляем новый вопрос или завершаем ЖО
         is_none = True
-        for answer in session.jo_question.answers:
-            jo_questions.handle_answer(session.user, session.jo_question, text)
-            session.jo_question = answer.next_question
+
+        # TODO Call selector method
+        jo_questions.handle_answer(session.user, session.jo_question, text)
+        session.jo_question = answer.next_question
+
+        if session.jo_question is not None:
             send_callback(sender_id, session.jo_question.text, [])
-            is_none = False
-            break
-        if is_none:
-            # Переходим на тестирование
+        else:
+             # Переходим на тестирование
             session.state = storage.Session.STATE_QUIZ
             # TODO Использовать не-захадкоженную категорию
             session.quiz_question = storage.fetch_next_question_for_user(session.user, 1, 1)
@@ -84,6 +85,14 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
         else:
             n_quest = storage.fetch_next_question_for_user(session.user, quest.category.cid, quest.level)
 
-        send_callback(sender_id, n_quest.text, [])
+        if n_quest is None:
+            session.state = "FIN"
+            send_callback(sender_id, u"Конец", [])
+        else: 
+            send_callback(sender_id, n_quest.text, [])
+
+    elif session.state == storage.Session.STATE_FIN:
+        # TODO Fetch random text
+        send_callback(sender_id, u"Конец", [])
 
     storage.store_session(session, sender_id)

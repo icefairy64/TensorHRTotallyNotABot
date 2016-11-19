@@ -84,6 +84,7 @@ class Session:
 
     STATE_JO = "JO"
     STATE_QUIZ = "QUIZ"
+    STATE_FIN = "FIN"
 
     def __init__(self, user, state=None, jo_question=None, quiz_question=None):
         self.user = user
@@ -161,6 +162,12 @@ def fetch_answers_for_user(user):
     return res
 
 def store_users_answer(user, question, answer_text, grade):
+    exists = False
+    for row in conn.execute(u"select user_id from users_answers where user_id={} and question_id={}".format(user.uid, question.qid)):
+        exists = True
+        break
+    if exists:
+        return
     conn.execute(u"insert into users_answers (user_id, question_id, raw_answer, answer_grade, answer_time) values ({}, {}, {}, {}, {})".format(user.uid, question.qid, nf(answer_text), grade, int(time.time())))
     conn.commit()
 

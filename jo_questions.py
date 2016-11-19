@@ -28,7 +28,7 @@ if dct is not None:
         questions[name] = JOQuestion(name, sdct)
     for name, q in questions.items():
         for answ in q.answers:
-            answ.next_question = questions[answ.next_question]
+            answ.next_question = questions[answ.next_question] if answ.next_question in questions else None
 
 def handle_answer(user, question, answer_text):
     if question.save_to == "name":
