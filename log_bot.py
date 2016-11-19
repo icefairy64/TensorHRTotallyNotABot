@@ -15,7 +15,7 @@ def get_info_user(id):
     folder = 'info_candidats/' + id + "/"
 
     file_info = file(folder + 'perepiska.html','a')
-    str="</BODY></HTML>"
+    str="</head></BODY></HTML>"
     file_info.write("<b>" + str + "</br>")
     file_info.close()
 
@@ -36,11 +36,14 @@ def get_info_user(id):
     filename = __file__
 
     # Создание архива
-    z = ZipFile(folder +line+ '.zip', 'w')
+    zip_archive = folder +line+ '.zip'
+    z = ZipFile(zip_archive, 'w')
     # Добавление файла в архив
     z.write(filename, line + '_info.pdf')
     z.write(filename, line + '_charect.pdf')
     z.close()
+
+    return zip_archive
 
 def write_characteristic(id,cv):
     folder = 'info_candidats/' + id + "/"
@@ -77,7 +80,7 @@ def new_user(id,name,surname):
 
     #Создаем html с перепиской пользователя
     file_info = file(folder + 'perepiska' + '.html', 'a')
-    str = "<HTML><BODY><TITLE>" + name + "_" + surname + "<br><\TITlE>"
+    str = "<HTML><BODY><head><TITLE>" + name + "_" + surname + "<br><\TITlE>"
     file_info.write(str)
     file_info.close()
 
