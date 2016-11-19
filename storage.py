@@ -7,8 +7,6 @@ import time
 import jo_questions
 import codecs
 
-conn = sqlite3.connect("storage.db")
-
 class QuestionCategory:
     def __init__(self, cid, disp_name):
         self.cid = cid
@@ -66,14 +64,14 @@ def user_fromdb(row):
 
 def fetch_categories():
     res = {}
-    for row in conn.execute(u"select * from question_categories"):
+    for row in sqlite3.connect("storage.db").execute(u"select * from question_categories"):
         res[row[0]] = (QuestionCategory(row[0], row[1]))
     return res
 
 def fetch_questions():
     res = []
     cats = fetch_categories()
-    for row in conn.execute(u"select * from quizzes"):
+    for row in sqlite3.connect("storage.db").execute(u"select * from quizzes"):
         print("Debug info: ", row[0])
         res.append(Question(cats[row[1]], row[2], row[3], row[4], json.loads(row[5]), row[0]))
     return res
@@ -130,7 +128,7 @@ def fetch_next_question_onlevel(question_id):
     return samelvl[0]
 
 def fetch_user_by_telegramid(telegram_id):
-    for row in conn.execute(u"select * from users where telegram_id={}".format(telegram_id)):
+    for row in sqlite3.connect("storage.db").execute(u"select * from users where telegram_id={}".format(telegram_id)):
         return user_fromdb(row)
     raise Exception("Could not find user with Telegram ID '{}'".format(telegram_id))
 
@@ -147,53 +145,53 @@ def fetch_next_question_for_user(user, cat, level):
 def store_user(telegram_id, name=None, age=None, learn_exp=None, work_exp=None, skills=None, desired_job=None):
     exists = False
     uid = -1
-    for row in conn.execute("select id from users where telegram_id=?", [nf(telegram_id)]):
+    for row in sqlite3.connect("storage.db").execute("select id from users where telegram_id=?", [nf(telegram_id)]):
         uid = row[0]
         exists = True
         break
     if exists:
         query = u"update users set telegram_id=?, name=?, age=?, learn_exp=?, work_exp=?, skills=?, desired_job=? where id=?"
-        conn.execute(query, [nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills), nf(desired_job), nf(uid)])
+        sqlite3.connect("storage.db").execute(query, [nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills), nf(desired_job), nf(uid)])
     else:
         query = u"insert into users (telegram_id, name, age, learn_exp, work_exp, skills, desired_job) values (?, ?, ?, ?, ?, ?, ?)"
-        conn.execute(query, [nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills), nf(desired_job)])
-    conn.commit()
+        sqlite3.connect("storage.db").execute(query, [nf(telegram_id), nf(name), nf(age), nf(learn_exp), nf(work_exp), nf(skills), nf(desired_job)])
+    sqlite3.connect("storage.db").commit()
 
 def update_user(user):
     store_user(user.telegram_id, user.name, user.age, user.learn_exp, user.work_exp, user.skills, user.desired_job)
 
 def fetch_answers_for_user(user):
     res = []
-    for row in conn.execute(u"select question_id, raw_answer, answer_grade, answer_time from users_answers where user_id={} order by answer_time".format(user.uid)):
+    for row in sqlite3.connect("storage.db").execute(u"select question_id, raw_answer, answer_grade, answer_time from users_answers where user_id={} order by answer_time".format(user.uid)):
         res.append(UsersAnswer(user, next(x for x in g_questions if x.qid == row[0]), row[1], row[2], row[3]))
     return res
 
 def store_users_answer(user, question, answer_text, grade):
     exists = False
-    for row in conn.execute(u"select user_id from users_answers where user_id={} and question_id={}".format(user.uid, question.qid)):
+    for row in sqlite3.connect("storage.db").execute(u"select user_id from users_answers where user_id={} and question_id={}".format(user.uid, question.qid)):
         exists = True
         break
     if exists:
         return
-    conn.execute(u"insert into users_answers (user_id, question_id, raw_answer, answer_grade, answer_time) values ({}, {}, {}, {}, {})".format(user.uid, question.qid, nf(answer_text), grade, int(time.time())))
-    conn.commit()
+    sqlite3.connect("storage.db").execute(u"insert into users_answers (user_id, question_id, raw_answer, answer_grade, answer_time) values ({}, {}, {}, {}, {})".format(user.uid, question.qid, nf(answer_text), grade, int(time.time())))
+    sqlite3.connect("storage.db").commit()
 
 def fetch_session(session_id):
-    for row in conn.execute(u"select state, jo_question, quiz_question from sessions where session_id={}".format(session_id)):
+    for row in sqlite3.connect("storage.db").execute(u"select state, jo_question, quiz_question from sessions where session_id={}".format(session_id)):
         return Session(fetch_user_by_telegramid(session_id), row[0], jo_questions.questions[row[1]], g_questions[row[2]])
     return None
 
 def store_session(session, session_id):
     exists = False
     sid = -1
-    for row in conn.execute(u"select session_id from sessions where session_id={}".format(session_id)):
+    for row in sqlite3.connect("storage.db").execute(u"select session_id from sessions where session_id={}".format(session_id)):
         exists = True
         sid = row[0]
     if exists:
-        conn.execute(u"update sessions set state={}, jo_question={}, quiz_question={} where session_id={}".format(nf(session.state), nf(session.jo_question.name), nf(session.quiz_question.qid), sid))
+        sqlite3.connect("storage.db").execute(u"update sessions set state={}, jo_question={}, quiz_question={} where session_id={}".format(nf(session.state), nf(session.jo_question.name), nf(session.quiz_question.qid), sid))
     else:
-        conn.execute(u"insert into sessions (session_id, state, jo_question, quiz_question) values ({}, {}, {}, {})".format(nf(session_id), nf(session.state), nf(session.jo_question.name), nf(session.quiz_question.qid)))
-    conn.commit()
+        sqlite3.connect("storage.db").execute(u"insert into sessions (session_id, state, jo_question, quiz_question) values ({}, {}, {}, {})".format(nf(session_id), nf(session.state), nf(session.jo_question.name), nf(session.quiz_question.qid)))
+    sqlite3.connect("storage.db").commit()
 
 def get_random_answer():
     return random.choice(random_answers)
