@@ -17,34 +17,34 @@ class TestSingleChoiceAnswer(unittest.TestCase):
         self.ae = AnswerEvaluation.factory(AnswerEvaluation.SINGLE_CHOICE)
 
     def test_without_infelicity(self):
-        self.assertEqual(self.ae.estimate('инкапсуляция', 'Инкапсуляция'), 1)
-        self.assertEqual(self.ae.estimate('палиморфизм', 'Полиморфизм'), 0)
+        self.assertEqual(self.ae.estimate(u'инкапсуляция', u'Инкапсуляция'), 1)
+        self.assertEqual(self.ae.estimate(u'палиморфизм', u'Полиморфизм'), 0)
 
     def test_with_infelicity(self):
         self.assertEqual(
-            self.ae.estimate('Инкапсу', 'Инкапсуляция'), 0)
+            self.ae.estimate(u'Инкапсу', u'Инкапсуляция'), 0)
         self.assertGreaterEqual(
-            self.ae.estimate('Инкапсу', 'Инкапсуляция', 0.45), 0.5)
+            self.ae.estimate(u'Инкапсу', u'Инкапсуляция', 0.45), 0.5)
         self.assertGreaterEqual(
-            self.ae.estimate('Енкапселция', 'Инкапсуляция', 0.3), 0.8)
+            self.ae.estimate(u'Енкапселция', u'Инкапсуляция', 0.3), 0.8)
         self.assertGreaterEqual(
-            self.ae.estimate('Палиморфизм', 'Полиморфизм', 0.2), 0.9)
+            self.ae.estimate(u'Палиморфизм', u'Полиморфизм', 0.2), 0.9)
         self.assertGreaterEqual(
-            self.ae.estimate('Наслiдуване', 'Наследование', 0.3), 0.75)
+            self.ae.estimate(u'Наслiдуване', u'Наследование', 0.3), 0.75)
         self.assertLessEqual(
-            self.ae.estimate('успадкування', 'Наследование', 0.9), 0.5)
+            self.ae.estimate(u"успадкування", u"Наследование", 0.9), 0.5)
 
 
 class TestMultipleChoiceAnswer(unittest.TestCase):
 
     def setUp(self):
         self.ae = AnswerEvaluation.factory(AnswerEvaluation.MULTIPLE_CHOICE)
-        self.ref_answers = ['инкапсуляция', 'полиморфизм', 'наследование']
+        self.ref_answers = [u'инкапсуляция', u'полиморфизм', u'наследование']
 
-        self.answer1 = ['инкапсуляция', 'полиморфизм', 'наследование']
-        self.answer2 = ['палиморфзм', 'наследавание']
-        self.answer3 = ['палиморфзм', 'наследавание', 'инкапсуляция']
-        self.answer4 = ['палиморфзм']
+        self.answer1 = [u'инкапсуляция', u'полиморфизм', u'наследование']
+        self.answer2 = [u'палиморфзм', u'наследавание']
+        self.answer3 = [u'палиморфзм', u'наследавание', u'инкапсуляция']
+        self.answer4 = [u'палиморфзм']
 
     def test_without_infelicity(self):
         self.assertEqual(self.ae.estimate( self.answer1,
