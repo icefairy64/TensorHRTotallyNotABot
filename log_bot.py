@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import os
+import subprocess
+import subprocess as sp
+
 
 def create_new_user(id,name,surname):
     y=os.getcwd() + '/info_candidats'
@@ -9,10 +12,35 @@ def create_new_user(id,name,surname):
     new_user(id,name,surname)
 
 def get_info_user(id):
-    file_info = file(id + "/" + id + '_perepiska.html')
+    folder = 'info_candidats/' + id + "/"
+
+    file_info = file(folder + id + '_perepiska.html','a')
     str="</BODY></HTML>"
     file_info.write("<b>" + str + "</br>")
     file_info.close()
+
+    file_charect = file(folder + id + '_characteristic' + '.html', 'a')
+    str = "</BODY></HTML>"
+    file_charect.write(str)
+    file_charect.close()
+
+    file_name = open(folder + id + '.txt', 'r')
+    for line in file_name:
+         print(line)
+
+    command_1 = "athenapdf/athenapdf " + folder + id + '_perepiska.html ' + folder + line + '_info.pdf'
+    print(command_1 )
+
+    subprocess.call(command_1, shell=True)
+
+    sp.check_call(folder + line + '_perepiska.pdf')
+
+    command_2 ="athenapdf/athenapdf " + folder + id + '_characteristic.html ' + folder + line + '_charect.pdf'
+    print(command_2)
+
+    subprocess.call(command_2, shell=True)
+
+    sp.check_call(folder + line + '_charect.pdf')
 
 def write_characteristic(id,message):
     file_charect = file(id + name + surname + '_characteristic' + '.html', 'a')
@@ -43,7 +71,7 @@ def new_user(id,name,surname):
 
     #Сохраняем имя и фамилию по идентификатору для дальнейшей работы
     id_file = file( folder + id + ".txt", 'wb' )
-    id_file.write( name + " " + surname )
+    id_file.write( name + "_" + surname )
     id_file.close()
 
     #Создаем html с перепиской пользователя
