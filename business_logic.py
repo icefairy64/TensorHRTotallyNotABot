@@ -118,7 +118,6 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
             session.quiz_question = n_quest
 
     elif session.state == storage.Session.STATE_FIN:
-        # TODO Fetch random text
         send_callback(sender_id, storage.get_random_answer(), [])
 
     storage.store_session(session, sender_id)
