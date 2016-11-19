@@ -14,6 +14,8 @@ class JOQuestion:
         self.text = dct["text"]
         self.answers = [JOAnswer(x) for x in dct["answers"]]
 
+questions = {}
+
 dct = None
 with open("jo-questions.json", "r", encoding="utf-8") as q:
     dct = json.load(q)
