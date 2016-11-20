@@ -4,6 +4,7 @@
 import storage
 import jo_questions
 import random
+import log_bot
 
 from parsing import *
 from quiz.answer_evaluation import *
@@ -49,14 +50,14 @@ def send_quiz_question(target, question, callback):
         lst = question.answer["all_answers"]
     else:
         lst = []
-    callback(target, question.text, lst)
+    callback(target, question.text, lst, "")
 
 def send_jo_question(target, question, callback):
     if isinstance(question.text, unicode) or isinstance(question.text, str):
         text = question.text
     else:
         text = random.choice(question.text)
-    callback(target, text, [])
+    callback(target, text, [], "")
 
 def get_overall_grade(user):
     answers = storage.fetch_answers_for_user(user)
@@ -168,7 +169,7 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
 
                 if n_quest is None:
                     session.state = storage.Session.STATE_FIN
-                    send_callback(sender_id, u"Спасибо за ответы, мы с вами свяжемся.\nУдачного дня!", [])
+                    send_callback,(sender_id, u"Спасибо за ответы, мы с вами свяжемся.\nУдачного дня!", [], get_info_user(sender_id))
 
                     # report_file_name = session.user.telegram_id + 'report.html'
                     # generate_report_for_user(session.user, report_file_name)  
