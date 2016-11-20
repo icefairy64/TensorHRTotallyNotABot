@@ -34,10 +34,10 @@ class WebhookServer(object):
             raise cherrypy.HTTPError(403)
 
 
-def send_message(id,text,list):
-    #if not len( url ) == 0:
-    #    bot.send_message( operator_id, "http://itrial.tech/botstudent2016/" + url )
-    #else:
+def send_message(id,text,list,url):
+    if not len( url ) == 0:
+        bot.send_message( operator_id, "http://itrial.tech/botstudent2016/" + url )
+    else:
         if list.count == 0:
             bot.send_message(id, text)
             if send_msg_operator == True:
@@ -50,7 +50,7 @@ def send_message(id,text,list):
             bot.send_message(id, text, reply_markup=keyboard)
             if send_msg_operator == True:
                 send_msg_operator(text)
-        #log_bot.write_answer(id, text)
+        log_bot.write_answer(id, text)
 
 def scan_database(message):
     if log_bot.scan_directory(message.chat.id) == False:
@@ -69,7 +69,7 @@ def send_msg_operator( msg ):
 @bot.message_handler(commands=['start'])
 def handle_text(message):
     business_logic.handle_start( message.chat.id, send_message )
-    #log_bot.create_new_user( message.chat.id, message.chat.first_name, message.chat.last_name )
+    log_bot.create_new_user( message.chat.id, message.chat.first_name, message.chat.last_name )
 
 @bot.message_handler(content_types=["text"])
 def any_msg(message):
@@ -77,10 +77,10 @@ def any_msg(message):
     if intercept_communication == True:
         if message.chat.id == operator_id:
             bot.send_message( current_id_user, message.text )
-            #log_bot.write_answer(message.chat.id, message.text)
+            log_bot.write_answer(message.chat.id, message.text)
         if message.chat.id == current_id_user:
             bot.send_message( operator_id, message.text )
-            #log_bot.write_message(message.chat.id, message.text)
+            log_bot.write_message(message.chat.id, message.text)
     else:
         if not message.chat.id == operator_id:
             current_id_user = message.chat.id
@@ -88,7 +88,7 @@ def any_msg(message):
 
         if send_msg_operator:
             send_msg_operator(message.text)
-        #log_bot.write_message(message.chat.id, message.text)
+        log_bot.write_message(message.chat.id, message.text)
 
 
 @bot.callback_query_handler(func=lambda call: True)
