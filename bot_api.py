@@ -12,7 +12,7 @@ from config_bot import bot
 from telebot import types
 import business_logic
 import log_bot
-
+operator_id = 245898202
 # WebhookServer, process webhook calls
 class WebhookServer(object):
     @cherrypy.expose
@@ -32,26 +32,43 @@ class WebhookServer(object):
 def send_message(id,text,list):
     if list.count == 0:
         bot.send_message(id, text)
+        bot.send_message(operator_id, text)
     else:
         keyboard = types.InlineKeyboardMarkup(row_width=2)
         for it in list:
            print(it)
            keyboard.add(types.InlineKeyboardButton(text=it, callback_data=it))
         bot.send_message(id, text, reply_markup=keyboard)
+        bot.send_message(operator_id, text)
 
+def scan_database(message):
+    if log_bot.scan_directory(message.chat.id) == False:
+          log_bot.create_new_user(message.chat.id,message.chat.first_name,message.chat.last_name)
 
 @bot.message_handler(content_types=["text"])
 def any_msg(message):
-    list = ["pret","pok", "text"]
-    send_message(message.chat.id,message.text,list)
+    # list = ["pret","pok", "text"]
+    # send_message(message.chat.id,message.text,list)
+    print("text")
+    scan_database(message)
+    print("text")
     business_logic.handle_incoming_message(message.chat.id,message.text,False,send_message)
-    log_bot.write_message(message.chat.id,message.text)
+    print("text")
+    print(message.chat.id)
+    print(message.text)
+    #log_bot.write_message(message.chat.id,message.text)
+    print(message.chat.id)
+    bot.send_message(operator_id,"bolvanka")
+    print("sent")
+
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
     # Если сообщение из чата с ботом
     if call.message:
+        print("keyb")
+        bot.send_message(operator_id, call.message.text)
         business_logic.handle_incoming_message(call.message.chat.id, call.message.text, True, send_message)
         log_bot.write_message(call.message.chat.id, call.message.text)
         bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Пыщь")
