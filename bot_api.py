@@ -12,7 +12,12 @@ from config_bot import bot
 from telebot import types
 import business_logic
 import log_bot
+
 operator_id = 245898202
+send_msg_operator = True
+intercept_communication = False
+current_id_user = ""
+
 # WebhookServer, process webhook calls
 class WebhookServer(object):
     @cherrypy.expose
@@ -30,52 +35,87 @@ class WebhookServer(object):
 
 
 def send_message(id,text,list):
-    if list.count == 0:
-        bot.send_message(id, text)
-        bot.send_message(operator_id, text)
-    else:
-        keyboard = types.InlineKeyboardMarkup(row_width=2)
-        for it in list:
-           print(it)
-           keyboard.add(types.InlineKeyboardButton(text=it, callback_data=it))
-        bot.send_message(id, text, reply_markup=keyboard)
-        bot.send_message(operator_id, text)
+    #if not len( url ) == 0:
+    #    bot.send_message( operator_id, "http://itrial.tech/botstudent2016/" + url )
+    #else:
+        if list.count == 0:
+            bot.send_message(id, text)
+            if send_msg_operator == True:
+                send_msg_operator(text)
+        else:
+            keyboard = types.InlineKeyboardMarkup(row_width=2)
+            for it in list:
+                print(it)
+                keyboard.add(types.InlineKeyboardButton(text=it, callback_data=it))
+            bot.send_message(id, text, reply_markup=keyboard)
+            if send_msg_operator == True:
+                send_msg_operator(text)
+        #log_bot.write_answer(id, text)
 
 def scan_database(message):
     if log_bot.scan_directory(message.chat.id) == False:
           log_bot.create_new_user(message.chat.id,message.chat.first_name,message.chat.last_name)
 
+def send_msg_operator( msg ):
+    # Создаем клавиатуру и каждую из кнопок (по 2 в ряд)
+    keyboard = types.InlineKeyboardMarkup(row_width=2)
+    pause_button = types.InlineKeyboardButton(text="Приостановить общение бота", callback_data="pause_send_msg_oper")
+    start_button = types.InlineKeyboardButton(text="Возобновить общение бота", callback_data="start_send_msg_oper")
+    disable_button = types.InlineKeyboardButton(text="Отключить сообщения оператору", callback_data="disable_msg_operator")
+    enable_button = types.InlineKeyboardButton(text="Возобновить сообщения оператору", callback_data="enable_msg_operator")
+    keyboard.add(pause_button, start_button, disable_button, enable_button)
+    bot.send_message(operator_id, msg, reply_markup=keyboard)
+
+@bot.message_handler(commands=['start'])
+def handle_text(message):
+    business_logic.handle_start( message.chat.id, send_message )
+    #log_bot.create_new_user( message.chat.id, message.chat.first_name, message.chat.last_name )
+
 @bot.message_handler(content_types=["text"])
 def any_msg(message):
-    # list = ["pret","pok", "text"]
-    # send_message(message.chat.id,message.text,list)
-    print("text")
-    scan_database(message)
-    print("text")
-    business_logic.handle_incoming_message(message.chat.id,message.text,False,send_message)
-    print("text")
-    print(message.chat.id)
-    print(message.text)
-    #log_bot.write_message(message.chat.id,message.text)
-    print(message.chat.id)
-    bot.send_message(operator_id,"bolvanka")
-    print("sent")
+    global current_id_user
+    if intercept_communication == True:
+        if message.chat.id == operator_id:
+            bot.send_message( current_id_user, message.text )
+            #log_bot.write_answer(message.chat.id, message.text)
+        if message.chat.id == current_id_user:
+            bot.send_message( operator_id, message.text )
+            #log_bot.write_message(message.chat.id, message.text)
+    else:
+        if not message.chat.id == operator_id:
+            current_id_user = message.chat.id
+        business_logic.handle_incoming_message(message.chat.id,message.text,False,send_message)
 
+        if send_msg_operator:
+            send_msg_operator(message.text)
+        #log_bot.write_message(message.chat.id, message.text)
 
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
+    global send_msg_operator
+    global intercept_communication
     # Если сообщение из чата с ботом
     if call.message:
+        if call.data == "disable_msg_operator":
+            print("disable_msg_operator")
+            send_msg_operator = False
+        if call.data == "enable_msg_operator":
+            send_msg_operator = True
+            print("enable_msg_operator")
+        if call.data == "pause_send_msg_oper":
+            business_logic.pause()
+            intercept_communication=True
+            print("pause_send_msg_oper")
+        if call.data == "start_send_msg_oper":
+            business_logic.restore()
+            intercept_communication=False
+            print("start_send_msg_oper")
+
         print("keyb")
         bot.send_message(operator_id, call.message.text)
         business_logic.handle_incoming_message(call.message.chat.id, call.message.text, True, send_message)
-        log_bot.write_message(call.message.chat.id, call.message.text)
-        bot.edit_message_text(chat_id=call.message.chat.id, message_id=call.message.message_id, text="Пыщь")
-        # Уведомление в верхней части экрана
-        bot.answer_callback_query(callback_query_id=call.id, show_alert=False, text="Пыщь!")
-
-
+        #log_bot.write_message(call.message.chat.id, call.message.text)
 
 # Remove webhook, it fails sometimes the set if there is a previous webhook
 bot.remove_webhook()
