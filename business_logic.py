@@ -8,6 +8,8 @@ import random
 from parsing import *
 from quiz.answer_evaluation import *
 
+from user_report_generator import *
+
 active_sessions = {}
 
 is_active = True
@@ -105,11 +107,11 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
 
         # Заменяем C++
         if u'C++' in text:
-            text.replace(u'C++', u'cpp')
+            text = text.replace(u'C++', u'cpp')
         elif u'с++' in text:
-            text.replace(u'C++', u'cpp')
+            text = text.replace(u'C++', u'cpp')
         elif u'си++' in text:
-            text.replace(u'си++', u'cpp')
+            text = text.replace(u'си++', u'cpp')
 
         jo_questions.handle_answer(session.user, session.jo_question, text)
             # Если ответ не был записан в анкету, значит надо проанализировать его
@@ -126,6 +128,7 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
         else:
             # Переходим на тестирование
             session.state = storage.Session.STATE_QUIZ
+            storage.clear_quiz_history(session.user.uid)
             session.quiz_question = storage.fetch_next_question_for_user(
                 session.user, session.quiz_id or 1, 1)
             send_quiz_question(sender_id, session.quiz_question, send_callback)
@@ -159,15 +162,34 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
                 session.user, quest.category.cid, quest.level)
 
         if n_quest is None:
-            if (len(answs) < 20):
+            if (len(answs) < 1):
                 n_quest = storage.fetch_next_question_for_user(
                     session.user, quest.category.cid, quest.level + 1)
-                send_quiz_question(sender_id, n_quest, send_callback)
-                session.quiz_question = n_quest
+
+                if n_quest is None:
+                    session.state = storage.Session.STATE_FIN
+                    send_callback(sender_id, u"Спасибо за ответы, мы с вами свяжемся.\nУдачного дня!", [])
+
+                    # report_file_name = session.user.telegram_id + 'report.html'
+                    # generate_report_for_user(session.user, report_file_name)  
+                    score = int(100*get_overall_grade(session.user) / len(answs))  
+                    report = u'{} прошёл тест по {}, набрал {} баллов'.format(session.user.name, 
+                                                                              ['Python', 'Java', 'C++'][session.quiz_id],
+                                                                              score)
+
+                    send_callback(report=report)
+                else:
+                    send_quiz_question(sender_id, n_quest, send_callback)
+                    session.quiz_question = n_quest
             else:
                 session.state = storage.Session.STATE_FIN
                 send_callback(sender_id, u"Спасибо за ответы, мы с вами свяжемся.\nУдачного дня!", [])
-                # TODO Save results
+                score = int(100*get_overall_grade(session.user) / len(answs))
+                report = u'{} прошёл тест по {}, набрал {} баллов из 100'.format(session.user.name, 
+                                                                                 ['Python', 'Java', 'C++'][session.quiz_id or 1],
+                                                                                 score)
+                send_callback(report=report)
+                
         else:
             send_quiz_question(sender_id, n_quest, send_callback)
             session.quiz_question = n_quest

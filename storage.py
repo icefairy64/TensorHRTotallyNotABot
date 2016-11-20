@@ -97,7 +97,7 @@ class Session:
             self.state = state
 
         if jo_question is None:
-            self.jo_question = jo_questions.questions[u"КакаяВакансия"] #Начало
+            self.jo_question = jo_questions.questions[u"Начало"] #Начало
         else:
             self.jo_question = jo_question
 
@@ -178,9 +178,12 @@ def store_users_answer(user, question, answer_text, grade):
         break
     if exists:
         return
+
     conn = sqlite3.connect("storage.db")
-    conn.execute(u"insert into users_answers (user_id, question_id, raw_answer, answer_grade, answer_time) values ({}, {}, {}, {}, {})".format(user.uid, question.qid, nf(answer_text), grade, int(time.time())))
+    conn.execute(u"insert into users_answers (user_id, question_id, raw_answer, answer_grade, answer_time) values (?, ?, ?, ?, ?)",
+                 (user.uid, question.qid, nf(answer_text), grade, int(time.time())))
     conn.commit()
+    conn.close()
 
 def fetch_session(session_id):
     for row in sqlite3.connect("storage.db").execute(u"select state, jo_question, quiz_question from sessions where session_id={}".format(session_id)):
@@ -205,6 +208,12 @@ def store_session(session, session_id):
 def delete_session(session_id):
     conn = sqlite3.connect("storage.db")
     conn.execute(u"delete from sessions where session_id = {}".format(nf(session_id)))
+    conn.commit()
+    conn.close()
+
+def clear_quiz_history(user_id):
+    conn = sqlite3.connect("storage.db")
+    conn.execute(u"delete from users_answers where user_id = {}".format(user_id))
     conn.commit()
     conn.close()
 
