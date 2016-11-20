@@ -9,7 +9,7 @@ def split_string(string):
     return_list = []
 
     def add_item_list(parsing_string): # добавляет слово в список
-        pos_list = ['PREP', 'CONJ', 'PRCL', 'INTJ'] # список ненужных частей речи
+        pos_list = ['PREP', 'CONJ', 'INTJ'] # список ненужных частей речи
         if parsing_string.tag.POS not in pos_list: # Проверка части речи
             return_list.append(parsing_string.normal_form)
 

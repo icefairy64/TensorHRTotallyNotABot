@@ -101,11 +101,22 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
 
     if session.state == storage.Session.STATE_JO:
         # Сначала берём первый попавшийся ответ
-        answer = session.jo_question.answers[0]
+        #answer = session.jo_question.answers[0]
 
-        if not jo_questions.handle_answer(session.user, session.jo_question, text):
+        # Заменяем C++
+        if u'C++' in text:
+            text.replace(u'C++', u'cpp')
+        elif u'с++' in text:
+            text.replace(u'C++', u'cpp')
+        elif u'си++' in text:
+            text.replace(u'си++', u'cpp')
+
+        jo_questions.handle_answer(session.user, session.jo_question, text)
             # Если ответ не был записан в анкету, значит надо проанализировать его
-            answer = jo_questions.get_best_answer(text, session.jo_question)
+        answer = jo_questions.get_best_answer(text, session.jo_question)
+
+        if answer.quiz_id is not None:
+            session.quiz_id = answer.quiz_id
 
         n_jo_quest = answer.next_question
 
@@ -115,17 +126,16 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
         else:
             # Переходим на тестирование
             session.state = storage.Session.STATE_QUIZ
-            # TODO Использовать не-захадкоженную категорию
             session.quiz_question = storage.fetch_next_question_for_user(
-                session.user, 1, 1)
+                session.user, session.quiz_id or 1, 1)
             send_quiz_question(sender_id, session.quiz_question, send_callback)
 
     elif session.state == storage.Session.STATE_QUIZ:
         quest = session.quiz_question
 
-        if quest.answer["type"] == 0 and not is_keyboard:
-            send_callback(sender_id, u"Пожалуйста, выберите ответ из перечисленных выше.", [])
-            return
+        # if quest.answer["type"] == 0 and not is_keyboard:
+        #     send_callback(sender_id, u"Пожалуйста, выберите ответ из перечисленных выше.", [])
+        #     return
 
         mark = AnswerEvaluation.factory(quest.answer["type"]).estimate(
             text if quest.answer["type"] == AnswerEvaluation.SINGLE_CHOICE else list(

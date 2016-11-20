@@ -1,5 +1,5 @@
 from time import sleep
-from twx.botapi import TelegramBot
+from twx.botapi import TelegramBot, ReplyKeyboardHide, ReplyKeyboardMarkup
 
 from business_logic import *
 
@@ -25,7 +25,8 @@ class Bot:
             sleep(1)
 
     def send(self, user_id, text, keyboard_list):
-        return self.bot.send_message(user_id, text).wait()
+        rm = ReplyKeyboardMarkup.create(keyboard=[[x] for x in keyboard_list],one_time_keyboard=True) if keyboard_list != [] else None
+        return self.bot.send_message(user_id, text, reply_markup=rm).wait()
 
 bot = Bot('223961538:AAEqWbRFTbUfJuWJOLaWM16znnIDVgR962A')
 print("Starting Bot...")

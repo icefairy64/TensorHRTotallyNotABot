@@ -88,7 +88,7 @@ class Session:
     STATE_QUIZ = "QUIZ"
     STATE_FIN = "FIN"
 
-    def __init__(self, user, state=None, jo_question=None, quiz_question=None):
+    def __init__(self, user, state=None, jo_question=None, quiz_question=None, quiz_id=None):
         self.user = user
 
         if state is None:
@@ -97,7 +97,7 @@ class Session:
             self.state = state
 
         if jo_question is None:
-            self.jo_question = jo_questions.questions[u"Начало"]
+            self.jo_question = jo_questions.questions[u"КакаяВакансия"] #Начало
         else:
             self.jo_question = jo_question
 
@@ -105,6 +105,8 @@ class Session:
             self.quiz_question = g_questions[1]
         else:
             self.quiz_question = quiz_question
+
+        self.quiz_id = quiz_id
 
 def question_order(question):
     return question.level * 65535 + question.num
