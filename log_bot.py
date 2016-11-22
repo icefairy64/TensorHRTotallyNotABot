@@ -57,14 +57,14 @@ def write_message(idd,message):
     id = str(idd)
     y = os.getcwd() + '/info_candidats/'
     file_info = file(y + id + "/" + 'perepiska.html','a')
-    file_info.write("<b>" + message + "=>" + "</b>")
+    file_info.write(u"<b>" + message + "=>" + u"</b>")
     file_info.close()
 
 def write_answer(idd,message):
     id = str(idd)
     y = os.getcwd() + '/info_candidats/'
     file_info = file(y + id + "/" + 'perepiska.html','a')
-    file_info.write("<b>" + message + "</br>")
+    file_info.write(u"<b>" + message + u"</br>")
     file_info.close()
 
 def create_new(y):
@@ -86,7 +86,7 @@ def new_user(idd,name,surname):
 
     #Создаем html с перепиской пользователя
     file_info = file(folder + 'perepiska' + '.html', 'a')
-    str = "<HTML><BODY><head><TITLE>" + name + "_" + surname + "<br><\TITlE>"
+    str = u"<HTML><BODY><head><TITLE>" + name + u"_" + surname + u"<br><\TITlE>"
     file_info.write(str)
     file_info.close()
 
