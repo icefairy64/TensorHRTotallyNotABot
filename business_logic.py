@@ -4,7 +4,8 @@
 import storage
 import jo_questions
 import random
-import log_bot
+
+from log_bot import *
 
 from parsing import *
 from quiz.answer_evaluation import *
@@ -175,7 +176,7 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
         # No more questions. For real now.
         if n_quest is None:
             session.state = storage.Session.STATE_FIN
-            send_callback(sender_id, u"Спасибо за ответы, мы с вами свяжемся.\nУдачного дня!", [])
+            send_callback(sender_id, u"Спасибо за ответы, мы с вами свяжемся.\nУдачного дня!", [], get_info_user(sender_id))
             score = int(100*get_overall_grade(session.user) / len(answs))
             report = u'{} прошёл тест по {}, набрал {} баллов из 100'.format(session.user.name, 
                                                                              ['Python', 'Java', 'C++'][session.quiz_id or 1],
