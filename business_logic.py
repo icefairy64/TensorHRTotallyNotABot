@@ -30,17 +30,17 @@ def eval_answer_rate(answers):
 
         is_same = True
         lv = res[0].question.level
-        sum = 0.0
+        sm = 0.0
 
         for r in res:
-            sum += r.grade
+            sm += r.grade
             if r.question.level != lv:
                 is_same = False
                 break
 
-        if is_same and sum >= 3.5:
+        if is_same and sm >= 3.5:
             return 1
-        elif is_same and sum <= 2:
+        elif is_same and sm <= 2:
             return -1
 
     return 0
@@ -61,10 +61,10 @@ def send_jo_question(target, question, callback):
 
 def get_overall_grade(user):
     answers = storage.fetch_answers_for_user(user)
-    sum = 0.0
+    sm = 0.0
     for x in answers:
-        sum += x.grade
-    return sum
+        sm += x.grade
+    return sm
 
 def handle_start(sender_id, send_callback):
     if not is_active:
@@ -152,6 +152,7 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
 
         answer_rate = eval_answer_rate(answs)
 
+        # Adjusting question level
         if answer_rate >= 1:
             n_quest = storage.fetch_next_question_for_user(
                 session.user, quest.category.cid, quest.level + 1)
@@ -162,40 +163,30 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
             n_quest = storage.fetch_next_question_for_user(
                 session.user, quest.category.cid, quest.level)
 
+        # Some weird case
+        if n_quest is None and len(answs < 1):
+            n_quest = storage.fetch_next_question_for_user(
+                session.user, quest.category.cid, quest.level + 1)
+
+        if n_quest is None and quest.level < 4:
+            n_quest = storage.fetch_next_question_for_user(
+                session.user, quest.category.cid, quest.level + 1)
+
+        # No more questions. For real now.
         if n_quest is None:
-            if (len(answs) < 1):
-                n_quest = storage.fetch_next_question_for_user(
-                    session.user, quest.category.cid, quest.level + 1)
+            session.state = storage.Session.STATE_FIN
+            send_callback(sender_id, u"Спасибо за ответы, мы с вами свяжемся.\nУдачного дня!", [])
+            score = int(100*get_overall_grade(session.user) / len(answs))
+            report = u'{} прошёл тест по {}, набрал {} баллов из 100'.format(session.user.name, 
+                                                                             ['Python', 'Java', 'C++'][session.quiz_id or 1],
+                                                                             score)
+            send_callback(report=report)
 
-                if n_quest is None:
-                    session.state = storage.Session.STATE_FIN
-                    send_callback,(sender_id, u"Спасибо за ответы, мы с вами свяжемся.\nУдачного дня!", [], get_info_user(sender_id))
-
-                    # report_file_name = session.user.telegram_id + 'report.html'
-                    # generate_report_for_user(session.user, report_file_name)  
-                    score = int(100*get_overall_grade(session.user) / len(answs))  
-                    report = u'{} прошёл тест по {}, набрал {} баллов'.format(session.user.name, 
-                                                                              ['Python', 'Java', 'C++'][session.quiz_id],
-                                                                              score)
-
-                    send_callback(report=report)
-                else:
-                    send_quiz_question(sender_id, n_quest, send_callback)
-                    session.quiz_question = n_quest
-            else:
-                session.state = storage.Session.STATE_FIN
-                send_callback(sender_id, u"Спасибо за ответы, мы с вами свяжемся.\nУдачного дня!", [])
-                score = int(100*get_overall_grade(session.user) / len(answs))
-                report = u'{} прошёл тест по {}, набрал {} баллов из 100'.format(session.user.name, 
-                                                                                 ['Python', 'Java', 'C++'][session.quiz_id or 1],
-                                                                                 score)
-                send_callback(report=report)
-                
         else:
             send_quiz_question(sender_id, n_quest, send_callback)
             session.quiz_question = n_quest
 
     elif session.state == storage.Session.STATE_FIN:
-        send_callback(sender_id, storage.get_random_answer(), [])
+        send_callback(sender_id, storage.get_random_answer(), [], "")
 
     storage.store_session(session, sender_id)

@@ -130,7 +130,7 @@ def fetch_next_question_onlevel(question_id):
     return samelvl[0]
 
 def fetch_user_by_telegramid(telegram_id):
-    for row in sqlite3.connect("storage.db").execute(u"select * from users where telegram_id={}".format(nf(telegram_id))):
+    for row in sqlite3.connect("storage.db").execute(u"select * from users where telegram_id=?", [telegram_id]):
         return user_fromdb(row)
     raise Exception("Could not find user with Telegram ID '{}'".format(telegram_id))
 
@@ -156,11 +156,13 @@ def store_user(telegram_id, name=None, age=None, learn_exp=None, work_exp=None, 
         conn = sqlite3.connect("storage.db")
         conn.execute(query, [telegram_id, name, age, learn_exp, work_exp, skills, desired_job, uid])
         conn.commit()
+        conn.close()
     else:
         query = u"insert into users (telegram_id, name, age, learn_exp, work_exp, skills, desired_job) values (?, ?, ?, ?, ?, ?, ?)"
         conn = sqlite3.connect("storage.db")
         conn.execute(query, [telegram_id, name, age, learn_exp, work_exp, skills, desired_job])
         conn.commit()
+        conn.close()
 
 def update_user(user):
     store_user(user.telegram_id, user.name, user.age, user.learn_exp, user.work_exp, user.skills, user.desired_job)
@@ -181,7 +183,7 @@ def store_users_answer(user, question, answer_text, grade):
 
     conn = sqlite3.connect("storage.db")
     conn.execute(u"insert into users_answers (user_id, question_id, raw_answer, answer_grade, answer_time) values (?, ?, ?, ?, ?)",
-                 (user.uid, question.qid, nf(answer_text), grade, int(time.time())))
+                 (user.uid, question.qid, answer_text, grade, int(time.time())))
     conn.commit()
     conn.close()
 
