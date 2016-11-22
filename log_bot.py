@@ -11,7 +11,8 @@ def create_new_user(id,name,surname):
     create_new(y)
     new_user(id,name,surname)
 
-def get_info_user(id):
+def get_info_user(idd):
+    id = str(idd)
     folder = 'info_candidats/' + id + "/"
 
     file_info = file(folder + 'perepiska.html','a')
@@ -45,19 +46,22 @@ def get_info_user(id):
 
     return zip_archive
 
-def write_characteristic(id,cv):
+def write_characteristic(idd,cv):
+    id = str(idd)
     folder = 'info_candidats/' + id + "/"
     file_charect = file(folder + 'cv.html', 'wb')
     file_charect.write(cv)
     file_charect.close()
 
-def write_message(id,message):
+def write_message(idd,message):
+    id = str(idd)
     y = os.getcwd() + '/info_candidats/'
     file_info = file(y + id + "/" + 'perepiska.html','a')
     file_info.write("<b>" + message + "=>" + "</b>")
     file_info.close()
 
-def write_answer(id,message):
+def write_answer(idd,message):
+    id = str(idd)
     y = os.getcwd() + '/info_candidats/'
     file_info = file(y + id + "/" + 'perepiska.html','a')
     file_info.write("<b>" + message + "</br>")
@@ -68,7 +72,9 @@ def create_new(y):
     if not os.path.exists(y):
         os.mkdir(y)
 
-def new_user(id,name,surname):
+def new_user(idd,name,surname):
+    id = str(idd)
+
     #Создаем папку для нового пользователя
     folder = os.getcwd() + '/info_candidats/' + id + "/"
     create_new(folder)

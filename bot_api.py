@@ -13,6 +13,8 @@ from telebot import types
 import business_logic
 import log_bot
 
+from traceback import *
+
 operator_id = 245898202
 send_msg_operator = True
 intercept_communication = False
@@ -37,7 +39,7 @@ class WebhookServer(object):
 def send_message(id,text,list,url):
     try:
         if not len( url ) == 0:
-            bot.send_message( operator_id, "http://itrial.tech/git-master/TensorHRTotallyNotABot" + url )
+            bot.send_message( operator_id, u"http://itrial.tech/git-master/TensorHRTotallyNotABot" + url )
         else:
             if list.count == 0:
                 bot.send_message(id, text)
@@ -53,7 +55,7 @@ def send_message(id,text,list,url):
                     send_msg_operator(text)
             log_bot.write_answer(id, text)
     except Exception as e:
-        print(e)
+        print_exc()
         raise e
     
 
@@ -65,14 +67,14 @@ def send_msg_operator( msg ):
     try:
         # Создаем клавиатуру и каждую из кнопок (по 2 в ряд)
         keyboard = types.InlineKeyboardMarkup(row_width=2)
-        pause_button = types.InlineKeyboardButton(text="Приостановить общение бота", callback_data="pause_send_msg_oper")
-        start_button = types.InlineKeyboardButton(text="Возобновить общение бота", callback_data="start_send_msg_oper")
-        disable_button = types.InlineKeyboardButton(text="Отключить сообщения оператору", callback_data="disable_msg_operator")
-        enable_button = types.InlineKeyboardButton(text="Возобновить сообщения оператору", callback_data="enable_msg_operator")
+        pause_button = types.InlineKeyboardButton(text=u"Приостановить общение бота", callback_data="pause_send_msg_oper")
+        start_button = types.InlineKeyboardButton(text=u"Возобновить общение бота", callback_data="start_send_msg_oper")
+        disable_button = types.InlineKeyboardButton(text=u"Отключить сообщения оператору", callback_data="disable_msg_operator")
+        enable_button = types.InlineKeyboardButton(text=u"Возобновить сообщения оператору", callback_data="enable_msg_operator")
         keyboard.add(pause_button, start_button, disable_button, enable_button)
         bot.send_message(operator_id, msg, reply_markup=keyboard)
     except Exception as e:
-        print(e)
+        print_exc()
         raise e
 
 @bot.message_handler(commands=['start'])
@@ -81,7 +83,7 @@ def handle_text(message):
         business_logic.handle_start( message.chat.id, send_message )
         log_bot.create_new_user( message.chat.id, message.chat.first_name, message.chat.last_name )
     except Exception as e:
-        print(e)
+        print_exc()
         raise e
 
 @bot.message_handler(content_types=["text"])
@@ -104,7 +106,7 @@ def any_msg(message):
                 send_msg_operator(message.text)
             log_bot.write_message(message.chat.id, message.text)
     except Exception as e:
-        print(e)
+        print_exc()
         raise e
 
 
@@ -135,7 +137,7 @@ def callback_inline(call):
             business_logic.handle_incoming_message(call.message.chat.id, call.message.text, True, send_message)
             #log_bot.write_message(call.message.chat.id, call.message.text)
     except Exception as e:
-        print(e)
+        print_exc()
         raise e
 
 # Remove webhook, it fails sometimes the set if there is a previous webhook
