@@ -15,8 +15,8 @@ import log_bot
 
 from traceback import *
 
-operator_id = 245898202
-send_msg_operator = True
+operator_id = 244811534
+send_msg_operator_f = True
 intercept_communication = False
 current_id_user = ""
 
@@ -38,21 +38,23 @@ class WebhookServer(object):
 
 def send_message(id,text,list,url):
     try:
+        global send_msg_operator_f
         if not len( url ) == 0:
-            bot.send_message( operator_id, u"http://itrial.tech/git-master/TensorHRTotallyNotABot" + url )
+            bot.send_message( operator_id, u"Отчет: http://itrial.tech/git-master/TensorHRTotallyNotABot/" + url )
+            bot.send_message(id, text)
         else:
             if list.count == 0:
                 bot.send_message(id, text)
-                if send_msg_operator == True:
-                    send_msg_operator(text)
+                if send_msg_operator_f == True:
+                    send_msg_operator('БОТ: ' + text)
             else:
                 keyboard = types.InlineKeyboardMarkup(row_width=2)
                 for it in list:
                     print(it)
                     keyboard.add(types.InlineKeyboardButton(text=it, callback_data=it))
                 bot.send_message(id, text, reply_markup=keyboard)
-                if send_msg_operator == True:
-                    send_msg_operator(text)
+                if send_msg_operator_f == True:
+                    send_msg_operator('БОТ: ' + text)
             log_bot.write_answer(id, text)
     except Exception as e:
         print_exc()
@@ -60,10 +62,15 @@ def send_message(id,text,list,url):
     
 
 def scan_database(message):
-    if log_bot.scan_directory(message.chat.id) == False:
-          log_bot.create_new_user(message.chat.id,message.chat.first_name,message.chat.last_name)
+    try:
+        if log_bot.scan_directory(message.chat.id) == False:
+            log_bot.create_new_user(message.chat.id,message.chat.first_name,message.chat.last_name)
+    except Exception as e:
+        print_exc()
+        raise e
 
 def send_msg_operator( msg ):
+    print('To operator:', msg)
     try:
         # Создаем клавиатуру и каждую из кнопок (по 2 в ряд)
         keyboard = types.InlineKeyboardMarkup(row_width=2)
@@ -90,21 +97,33 @@ def handle_text(message):
 def any_msg(message):
     try:
         global current_id_user
+        global send_msg_operator_f
+        print('Incoming message', message.chat.id, message.text)
         if intercept_communication == True:
+            print('Intercept')
             if message.chat.id == operator_id:
+                print('Operator -> User')
                 bot.send_message( current_id_user, message.text )
-                log_bot.write_answer(message.chat.id, message.text)
-            if message.chat.id == current_id_user:
-                bot.send_message( operator_id, message.text )
                 log_bot.write_message(message.chat.id, message.text)
+                #log_bot.write_answer(message.chat.id, message.text)
+            else:#if message.chat.id == current_id_user:
+                print('User -> Operator') 
+                bot.send_message( operator_id, message.text )
+                log_bot.write_answer(message.chat.id, message.text)
+                #log_bot.write_message(message.chat.id, message.text)
         else:
-            if not message.chat.id == operator_id:
-                current_id_user = message.chat.id
-            business_logic.handle_incoming_message(message.chat.id,message.text,False,send_message)
-
-            if send_msg_operator:
+            print('No intercept')
+            
+            if send_msg_operator_f:
+                print('Sending to operator')
                 send_msg_operator(message.text)
-            log_bot.write_message(message.chat.id, message.text)
+                log_bot.write_message(message.chat.id, message.text)
+
+            if not message.chat.id == operator_id:
+                print('User')
+                current_id_user = message.chat.id
+                business_logic.handle_incoming_message(message.chat.id,message.text,False,send_message)
+
     except Exception as e:
         print_exc()
         raise e
@@ -113,15 +132,15 @@ def any_msg(message):
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
     try:
-        global send_msg_operator
+        global send_msg_operator_f
         global intercept_communication
         # Если сообщение из чата с ботом
         if call.message:
             if call.data == "disable_msg_operator":
                 print("disable_msg_operator")
-                send_msg_operator = False
+                send_msg_operator_f = False
             if call.data == "enable_msg_operator":
-                send_msg_operator = True
+                send_msg_operator_f = True
                 print("enable_msg_operator")
             if call.data == "pause_send_msg_oper":
                 business_logic.pause()
@@ -135,7 +154,7 @@ def callback_inline(call):
             print("keyb")
             bot.send_message(operator_id, call.message.text)
             business_logic.handle_incoming_message(call.message.chat.id, call.message.text, True, send_message)
-            #log_bot.write_message(call.message.chat.id, call.message.text)
+            log_bot.write_message(call.message.chat.id, call.message.text)
     except Exception as e:
         print_exc()
         raise e

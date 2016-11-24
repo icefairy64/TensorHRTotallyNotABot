@@ -54,7 +54,7 @@ def send_quiz_question(target, question, callback):
     callback(target, question.text, lst, "")
 
 def send_jo_question(target, question, callback):
-    if isinstance(question.text, unicode) or isinstance(question.text, str):
+    if isinstance(question.text, str):
         text = question.text
     else:
         text = random.choice(question.text)
@@ -165,7 +165,7 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
                 session.user, quest.category.cid, quest.level)
 
         # Some weird case
-        if n_quest is None and len(answs < 1):
+        if n_quest is None and len(answs) < 1:
             n_quest = storage.fetch_next_question_for_user(
                 session.user, quest.category.cid, quest.level + 1)
 
@@ -173,15 +173,19 @@ def handle_incoming_message(sender_id, text, is_keyboard, send_callback):
             n_quest = storage.fetch_next_question_for_user(
                 session.user, quest.category.cid, quest.level + 1)
 
+        if len(answs) >= 5:
+           n_quest = None
+
         # No more questions. For real now.
         if n_quest is None:
             session.state = storage.Session.STATE_FIN
+            generate_report_for_user(storage.fetch_user_by_telegramid(sender_id), "info_candidats/{}/cv.html".format(sender_id))
             send_callback(sender_id, u"Спасибо за ответы, мы с вами свяжемся.\nУдачного дня!", [], get_info_user(sender_id))
             score = int(100*get_overall_grade(session.user) / len(answs))
-            report = u'{} прошёл тест по {}, набрал {} баллов из 100'.format(session.user.name, 
-                                                                             ['Python', 'Java', 'C++'][session.quiz_id or 1],
-                                                                             score)
-            send_callback(report=report)
+            #report = u'{} прошёл тест по {}, набрал {} баллов из 100'.format(session.user.name, 
+            #                                                                 ['Python', 'Java', 'C++'][session.quiz_id or 1],
+            #                                                                 score)
+            #send_callback(sender_id, report, [], "")
 
         else:
             send_quiz_question(sender_id, n_quest, send_callback)

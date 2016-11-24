@@ -6,7 +6,11 @@ import subprocess
 import subprocess as sp
 from zipfile import ZipFile
 
+from io import *
+import pathlib
+
 def create_new_user(id,name,surname):
+    print("Creating new user", id)
     y=os.getcwd() + '/info_candidats'
     create_new(y)
     new_user(id,name,surname)
@@ -15,21 +19,22 @@ def get_info_user(idd):
     id = str(idd)
     folder = 'info_candidats/' + id + "/"
 
-    file_info = file(folder + 'perepiska.html','a')
-    str="</head></BODY></HTML>"
-    file_info.write("<b>" + str + "</br>")
+    file_info = open(folder + 'perepiska.html','a')
+    st="</BODY></HTML>\n"
+    file_info.write("<br/>" + st)
     file_info.close()
 
-    file_name = open(folder + id + '.txt', 'r')
-    for line in file_name:
-         print(line)
+    if pathlib.Path(folder + id + '.txt').exists():
+        file_name = open(folder + id + '.txt', 'r')
+        for line in file_name:
+            print(line)
 
-    command_1 = "athenapdf/athenapdf " + folder + 'perepiska.html ' + folder + line + '_info.pdf'
+    command_1 = "athenapdf/athenapdf " + folder + 'perepiska.html ' + folder + id + '_info.pdf'
     print(command_1 )
 
     subprocess.call(command_1, shell=True)
 
-    command_2 ="athenapdf/athenapdf " + folder +  'cv.html ' + folder + line + '_charect.pdf'
+    command_2 ="athenapdf/athenapdf " + folder +  'cv.html ' + folder + id + '_charect.pdf'
     print(command_2)
 
     subprocess.call(command_2, shell=True)
@@ -37,11 +42,11 @@ def get_info_user(idd):
     filename = __file__
 
     # Создание архива
-    zip_archive = folder +line+ '.zip'
+    zip_archive = folder + id + '.zip'
     z = ZipFile(zip_archive, 'w')
     # Добавление файла в архив
-    z.write(filename, line + '_info.pdf')
-    z.write(filename, line + '_charect.pdf')
+    z.write(folder + id + '_info.pdf', id + '_info.pdf')
+    z.write(folder + id + '_charect.pdf', id + '_charect.pdf')
     z.close()
 
     return zip_archive
@@ -49,30 +54,36 @@ def get_info_user(idd):
 def write_characteristic(idd,cv):
     id = str(idd)
     folder = 'info_candidats/' + id + "/"
-    file_charect = file(folder + 'cv.html', 'wb')
+    create_new(folder)
+    file_charect = open(folder + 'cv.html', 'w')
     file_charect.write(cv)
     file_charect.close()
 
 def write_message(idd,message):
     id = str(idd)
     y = os.getcwd() + '/info_candidats/'
-    file_info = file(y + id + "/" + 'perepiska.html','a')
-    file_info.write(u"<b>" + message + "=>" + u"</b>")
+    create_new(y + id + "/")
+    file_info = open(y + id + "/" + 'perepiska.html','a')
+    file_info.write('<br/>\n')
+    file_info.write(message)
     file_info.close()
 
 def write_answer(idd,message):
     id = str(idd)
     y = os.getcwd() + '/info_candidats/'
-    file_info = file(y + id + "/" + 'perepiska.html','a')
-    file_info.write(u"<b>" + message + u"</br>")
+    create_new(y + id + "/")
+    file_info = open(y + id + "/" + 'perepiska.html','a')
+    file_info.write('<br/>\n')
+    file_info.write(message)
     file_info.close()
 
 def create_new(y):
-    print(y)
+    print("Creating dir", y)
     if not os.path.exists(y):
         os.mkdir(y)
 
 def new_user(idd,name,surname):
+    print("Creating folder for user", idd)
     id = str(idd)
 
     #Создаем папку для нового пользователя
@@ -80,16 +91,16 @@ def new_user(idd,name,surname):
     create_new(folder)
 
     #Сохраняем имя и фамилию по идентификатору для дальнейшей работы
-    id_file = file( folder + id + ".txt", 'wb' )
-    id_file.write( name + "_" + surname )
+    id_file = open( folder + id + ".txt", 'w' )
+    id_file.write( "{}_{}".format(name, surname) )
     id_file.close()
 
     #Создаем html с перепиской пользователя
-    file_info = file(folder + 'perepiska' + '.html', 'a')
-    str = u"<HTML><BODY><head><TITLE>" + name + u"_" + surname + u"<br><\TITlE>"
-    file_info.write(str)
+    file_info = open(folder + 'perepiska' + '.html', 'w')
+    st = u'<HTML><head><TITLE>{}_{}</TITLE><meta http-equiv="Content-Type" content="text/html; charset=utf-8" /></head><body>\n'.format(name, surname)
+    file_info.write(st)
     file_info.close()
 
     # Создаем html с характеристикой на пользователя
-    file_charect = file(folder + 'cv.html', 'a')
+    file_charect = open(folder + 'cv.html', 'w')
     file_charect.close()

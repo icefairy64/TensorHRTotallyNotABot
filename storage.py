@@ -23,7 +23,7 @@ class Question:
 
     def get_params(self):
         if self.answer["type"] == 0:
-            return unicode(self.answer["right_answer"])
+            return self.answer["right_answer"]
         elif self.answer["type"] == 1:
             return self.answer["right_answer"]
         elif self.answer["type"] == 2:
@@ -52,7 +52,7 @@ class UsersAnswer:
         self.timestamp = timestamp
 
 def nf(data):
-    if isinstance(data, str) or isinstance(data, unicode):
+    if isinstance(data, str):
         return "'" + data + "'"
     elif data is None:
         return "NULL"
